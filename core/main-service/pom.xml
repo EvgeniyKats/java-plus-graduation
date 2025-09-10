@@ -113,6 +113,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>ru.practicum.main.service.MainServiceApplication</mainClass>
+                    <layout>JAR</layout>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.mysema.maven</groupId>
@@ -140,4 +144,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
