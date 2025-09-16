@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.main.service.validator.SizeAfterTrim;
+import ru.practicum.interaction.validator.SizeAfterTrim;
 
 @Data
 @NoArgsConstructor

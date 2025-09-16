@@ -19,7 +19,6 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import ru.practicum.main.service.event.model.Event;
-import ru.practicum.main.service.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -38,10 +37,8 @@ public class Comment {
     @Column(name = "comment_id")
     Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", referencedColumnName = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    User author;
+    @Column(name = "author_id", nullable = false, length = 5000)
+    Long authorId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", referencedColumnName = "event_id", nullable = false)

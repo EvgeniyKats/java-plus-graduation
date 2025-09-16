@@ -2,7 +2,7 @@ package ru.practicum.main.service.compilation.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.main.service.validator.SizeAfterTrim;
+import ru.practicum.interaction.validator.SizeAfterTrim;
 
 import java.util.Set;
 

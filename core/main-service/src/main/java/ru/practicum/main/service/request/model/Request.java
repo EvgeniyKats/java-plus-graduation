@@ -20,7 +20,6 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.main.service.event.model.Event;
 import ru.practicum.main.service.request.enums.RequestStatus;
-import ru.practicum.main.service.user.model.User;
 
 import java.time.LocalDateTime;
 
@@ -39,9 +38,8 @@ public class Request {
     @Column(name = "request_id")
     Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id", nullable = false)
-    User requester;
+    @Column(name = "requester_id", nullable = false)
+    Long requesterId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)

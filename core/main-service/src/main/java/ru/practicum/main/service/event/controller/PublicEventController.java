@@ -16,18 +16,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.practicum.interaction.exception.BadRequestException;
 import ru.practicum.main.service.event.dto.EventFullDto;
 import ru.practicum.main.service.event.dto.EventShortDto;
 import ru.practicum.main.service.event.enums.EventSortType;
 import ru.practicum.main.service.event.service.EventService;
 import ru.practicum.main.service.event.service.param.GetEventUserParam;
-import ru.practicum.main.service.exception.BadRequestException;
 import ru.practicum.stats.dto.EndpointHitDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static ru.practicum.main.service.Constants.DATE_PATTERN;
+import static ru.practicum.interaction.Constants.DATE_PATTERN;
 
 @Slf4j
 @Controller

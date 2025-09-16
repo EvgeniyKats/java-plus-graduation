@@ -7,7 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.main.service.Constants;
+import ru.practicum.interaction.dto.user.UserDto;
+import ru.practicum.interaction.exception.BadRequestException;
+import ru.practicum.interaction.exception.ConflictException;
+import ru.practicum.interaction.exception.NotFoundException;
+import ru.practicum.interaction.feign.user.UserInternalFeign;
 import ru.practicum.main.service.category.model.Category;
 import ru.practicum.main.service.category.repository.CategoryRepository;
 import ru.practicum.main.service.event.EventRepository;
@@ -27,30 +31,25 @@ import ru.practicum.main.service.event.model.QEvent;
 import ru.practicum.main.service.event.service.param.GetEventAdminParam;
 import ru.practicum.main.service.event.service.param.GetEventUserParam;
 import ru.practicum.main.service.event.util.ResponseEventBuilder;
-import ru.practicum.main.service.exception.BadRequestException;
-import ru.practicum.main.service.exception.ConflictException;
-import ru.practicum.main.service.exception.NotFoundException;
 import ru.practicum.main.service.request.MapperRequest;
 import ru.practicum.main.service.request.RequestRepository;
 import ru.practicum.main.service.request.dto.ParticipationRequestDto;
 import ru.practicum.main.service.request.enums.RequestStatus;
 import ru.practicum.main.service.request.model.Request;
-import ru.practicum.main.service.user.UserRepository;
-import ru.practicum.main.service.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import static ru.practicum.main.service.Constants.CATEGORY_NOT_FOUND;
-import static ru.practicum.main.service.Constants.EVENT_NOT_FOUND;
+import static ru.practicum.interaction.Constants.CATEGORY_NOT_FOUND;
+import static ru.practicum.interaction.Constants.EVENT_NOT_FOUND;
+import static ru.practicum.main.service.event.dto.UpdateEventAdminRequest.StateAction.PUBLISH_EVENT;
 import static ru.practicum.main.service.event.dto.UpdateEventUserRequest.StateAction.SEND_TO_REVIEW;
 import static ru.practicum.main.service.event.enums.EventState.CANCELED;
 import static ru.practicum.main.service.event.enums.EventState.PENDING;
-import static ru.practicum.main.service.event.util.ValidatorEventTime.isEventTimeBad;
-import static ru.practicum.main.service.event.dto.UpdateEventAdminRequest.StateAction.PUBLISH_EVENT;
 import static ru.practicum.main.service.event.enums.EventState.PUBLISHED;
 import static ru.practicum.main.service.event.enums.EventState.REJECTED;
+import static ru.practicum.main.service.event.util.ValidatorEventTime.isEventTimeBad;
 
 @Slf4j
 @Service
@@ -61,7 +60,7 @@ public class EventServiceImpl implements EventService {
     private final MapperEvent eventMapper;
     private final RequestRepository requestRepository;
     private final MapperRequest requestMapper;
-    private final UserRepository userRepository;
+    private final UserInternalFeign userInternalFeign;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final ResponseEventBuilder responseEventBuilder;
@@ -71,7 +70,7 @@ public class EventServiceImpl implements EventService {
         QEvent event = QEvent.event;
         BooleanBuilder requestBuilder = new BooleanBuilder();
         if (param.hasUsers()) {
-            requestBuilder.and(event.initiator.id.in(param.getUsers()));
+            requestBuilder.and(event.initiatorId.in(param.getUsers()));
         }
 
         if (param.hasStates()) {
@@ -151,9 +150,9 @@ public class EventServiceImpl implements EventService {
                 () -> new NotFoundException(CATEGORY_NOT_FOUND));
         event.setCategory(category);
 
-        User initiator = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(Constants.USER_NOT_FOUND));
-        event.setInitiator(initiator);
+
+        UserDto initiator = userInternalFeign.findUserById(userId);
+        event.setInitiatorId(initiator.getId());
 
         event.getLocation().setEvent(event);
         locationRepository.save(event.getLocation());
@@ -277,7 +276,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventById(Long eventId) {
         Event eventDomain = eventRepository.findByIdAndState(eventId, PUBLISHED)
-                .orElseThrow(() -> new NotFoundException(Constants.EVENT_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
         return responseEventBuilder.buildOneEventResponseDto(eventDomain, EventFullDto.class);
     }
 
@@ -285,7 +284,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateDto) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(Constants.EVENT_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
 
         if (event.getState() != EventState.PENDING) {
             throw new ConflictException("Изменить можно только события ожидающие модерацию, текущий статус " + event.getState());

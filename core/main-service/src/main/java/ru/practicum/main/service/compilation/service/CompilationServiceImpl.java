@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.interaction.exception.NotFoundException;
 import ru.practicum.main.service.compilation.CompilationRepository;
 import ru.practicum.main.service.compilation.MapperCompilation;
 import ru.practicum.main.service.compilation.dto.CompilationDto;
@@ -15,7 +16,6 @@ import ru.practicum.main.service.compilation.model.QCompilation;
 import ru.practicum.main.service.event.EventRepository;
 import ru.practicum.main.service.event.model.Event;
 import ru.practicum.main.service.event.model.QEvent;
-import ru.practicum.main.service.exception.NotFoundException;
 
 import java.util.List;
 import java.util.Set;

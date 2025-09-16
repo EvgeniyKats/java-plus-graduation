@@ -9,11 +9,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.main.service.user.dto.UserShortDto;
+import ru.practicum.interaction.dto.user.UserShortDto;
 
 import java.time.LocalDateTime;
 
-import static ru.practicum.main.service.Constants.DATE_PATTERN;
+import static ru.practicum.interaction.Constants.DATE_PATTERN;
+
 
 @Data
 @Builder

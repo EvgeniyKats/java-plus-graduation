@@ -1,12 +1,3 @@
-CREATE TABLE IF NOT EXISTS users
-(
-    user_id    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_name  VARCHAR(250) NOT NULL,
-    user_email VARCHAR(254) NOT NULL UNIQUE,
-    CONSTRAINT user_email_len CHECK (LENGTH(user_email) >= 6 AND LENGTH(user_email) <= 254),
-    CONSTRAINT user_name_len CHECK (LENGTH(user_name) >= 2 AND LENGTH(user_name) <= 250)
-);
-
 CREATE TABLE IF NOT EXISTS categories
 (
     category_id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -80,12 +71,6 @@ CREATE TABLE IF NOT EXISTS comments
 );
 
 ALTER TABLE events
-    DROP CONSTRAINT IF EXISTS fk_events_initiator_id;
-ALTER TABLE events
-    ADD CONSTRAINT fk_events_initiator_id FOREIGN KEY (initiator_id)
-        REFERENCES users (user_id) ON DELETE CASCADE;
-
-ALTER TABLE events
     DROP CONSTRAINT IF EXISTS fk_events_category_id;
 ALTER TABLE events
     ADD CONSTRAINT fk_events_category_id FOREIGN KEY (category_id)
@@ -96,12 +81,6 @@ ALTER TABLE locations
 ALTER TABLE locations
     ADD CONSTRAINT fk_locations_event_id FOREIGN KEY (event_id)
         REFERENCES events (event_id) ON DELETE CASCADE;
-
-ALTER TABLE requests
-    DROP CONSTRAINT IF EXISTS fk_requests_requester_id;
-ALTER TABLE requests
-    ADD CONSTRAINT fk_requests_requester_id FOREIGN KEY (requester_id)
-        REFERENCES users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE requests
     DROP CONSTRAINT IF EXISTS fk_requests_event_id;
@@ -120,12 +99,6 @@ ALTER TABLE events_compilations
 ALTER TABLE events_compilations
     ADD CONSTRAINT fk_events_compilations_compilation_id FOREIGN KEY (compilation_id)
         REFERENCES compilations (compilation_id) ON DELETE CASCADE;
-
-ALTER TABLE comments
-    DROP CONSTRAINT IF EXISTS fk_comments_author_id;
-ALTER TABLE comments
-    ADD CONSTRAINT fk_comments_author_id FOREIGN KEY (author_id)
-        REFERENCES  users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE comments
     DROP CONSTRAINT IF EXISTS fk_comments_event_id;

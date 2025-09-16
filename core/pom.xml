@@ -13,6 +13,9 @@
     <packaging>pom</packaging>
     <modules>
         <module>main-service</module>
+        <module>user-service</module>
+        <module>interaction-api</module>
+        <module>logging-starter</module>
     </modules>
 
     <properties>

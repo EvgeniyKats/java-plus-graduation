@@ -12,7 +12,7 @@ import ru.practicum.main.service.request.model.Request;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MapperRequest {
     @Mapping(source = "event.id", target = "event")
-    @Mapping(source = "requester.id", target = "requester")
+    @Mapping(source = "requesterId", target = "requester")
     ParticipationRequestDto toParticipationRequestDto(Request request);
 
     @Named("stateFromEventRequestStatusUpdateRequest")

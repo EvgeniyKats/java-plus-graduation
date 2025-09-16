@@ -8,7 +8,7 @@ import ru.practicum.main.service.request.enums.RequestStatus;
 
 import java.time.LocalDateTime;
 
-import static ru.practicum.main.service.Constants.DATE_PATTERN;
+import static ru.practicum.interaction.Constants.DATE_PATTERN;
 
 @Getter
 @Setter

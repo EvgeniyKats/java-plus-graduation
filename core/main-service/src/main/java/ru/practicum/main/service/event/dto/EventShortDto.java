@@ -6,15 +6,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.interaction.dto.user.UserShortDto;
 import ru.practicum.main.service.category.dto.CategoryDto;
 import ru.practicum.main.service.comment.dto.GetCommentDto;
-import ru.practicum.main.service.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ru.practicum.main.service.Constants.DATE_PATTERN;
+import static ru.practicum.interaction.Constants.DATE_PATTERN;
 
 @Getter
 @Setter

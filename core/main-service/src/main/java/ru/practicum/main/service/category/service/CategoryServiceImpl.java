@@ -4,15 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.interaction.exception.ConflictException;
+import ru.practicum.interaction.exception.DuplicateException;
+import ru.practicum.interaction.exception.NotFoundException;
 import ru.practicum.main.service.category.dto.CategoryDto;
 import ru.practicum.main.service.category.dto.NewCategoryDto;
 import ru.practicum.main.service.category.mapper.MapperCategory;
 import ru.practicum.main.service.category.model.Category;
 import ru.practicum.main.service.category.repository.CategoryRepository;
 import ru.practicum.main.service.event.EventRepository;
-import ru.practicum.main.service.exception.ConflictException;
-import ru.practicum.main.service.exception.DuplicateException;
-import ru.practicum.main.service.exception.NotFoundException;
 
 import java.util.List;
 

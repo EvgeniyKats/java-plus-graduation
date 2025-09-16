@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import ru.practicum.interaction.dto.user.UserShortDto;
 import ru.practicum.main.service.event.dto.EventFullDto;
 import ru.practicum.main.service.event.dto.EventShortDto;
 import ru.practicum.main.service.event.dto.NewEventDto;
@@ -26,9 +27,13 @@ public interface MapperEvent {
     @Mapping(source = "stateAction", target = "state", qualifiedByName = "stateFromUserAction")
     Event toEvent(UpdateEventUserRequest updateEventUserRequest);
 
-    EventShortDto toEventShortDto(Event event);
+    @Mapping(source = "event.id", target = "id")
+    @Mapping(source = "userShortDto", target = "initiator")
+    EventShortDto toEventShortDto(Event event, UserShortDto userShortDto);
 
-    EventFullDto toEventFullDto(Event event);
+    @Mapping(source = "event.id", target = "id")
+    @Mapping(source = "userShortDto", target = "initiator")
+    EventFullDto toEventFullDto(Event event, UserShortDto userShortDto);
 
     UpdateEventParam toUpdateParam(UpdateEventAdminRequest request);
 

@@ -6,7 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.main.service.Constants;
+import ru.practicum.interaction.Constants;
+import ru.practicum.interaction.dto.user.UserDto;
+import ru.practicum.interaction.exception.ConflictException;
+import ru.practicum.interaction.exception.NotFoundException;
+import ru.practicum.interaction.feign.user.UserInternalFeign;
 import ru.practicum.main.service.comment.CommentRepository;
 import ru.practicum.main.service.comment.MapperComment;
 import ru.practicum.main.service.comment.dto.CommentDto;
@@ -15,10 +19,6 @@ import ru.practicum.main.service.comment.enums.CommentSortType;
 import ru.practicum.main.service.comment.model.Comment;
 import ru.practicum.main.service.event.EventRepository;
 import ru.practicum.main.service.event.model.Event;
-import ru.practicum.main.service.exception.ConflictException;
-import ru.practicum.main.service.exception.NotFoundException;
-import ru.practicum.main.service.user.UserRepository;
-import ru.practicum.main.service.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,21 +32,23 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final MapperComment commentMapper;
-    private final UserRepository userRepository;
+    private final UserInternalFeign userInternalFeign;
     private final EventRepository eventRepository;
 
     @Override
     @Transactional
     public GetCommentDto addNewComment(Long userId, Long eventId, CommentDto commentDto) {
-        User commentAuthor = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(Constants.USER_NOT_FOUND));
+        UserDto commentAuthor = userInternalFeign.findUserById(userId);
+
         Event commentEvent = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(Constants.EVENT_NOT_FOUND));
+
         if (!commentEvent.getState().equals(PUBLISHED)) {
             throw new ConflictException("Событие ещё не опубликовано eventId=" + eventId);
         }
+
         Comment comment = commentMapper.toComment(commentDto);
-        comment.setAuthor(commentAuthor);
+        comment.setAuthorId(commentAuthor.getId());
         comment.setEvent(commentEvent);
         comment.setCreated(LocalDateTime.now());
         return commentMapper.toGetCommentDto(commentRepository.save(comment));
@@ -60,7 +62,7 @@ public class CommentServiceImpl implements CommentService {
         if (!commentFromDb.getEvent().getId().equals(eventId)) {
             throw new NotFoundException(Constants.COMMENT_EVENT_NOT_MATCH);
         }
-        if (!commentFromDb.getAuthor().getId().equals(userId)) {
+        if (!commentFromDb.getAuthorId().equals(userId)) {
             throw new NotFoundException(Constants.COMMENT_AUTHOR_NOT_MATCH);
         }
         if (commentFromDb.getCreated().isBefore(LocalDateTime.now().minusDays(1))) {
@@ -78,7 +80,7 @@ public class CommentServiceImpl implements CommentService {
         if (!commentFromDb.getEvent().getId().equals(eventId)) {
             throw new NotFoundException(Constants.COMMENT_EVENT_NOT_MATCH);
         }
-        if (!commentFromDb.getAuthor().getId().equals(userId)) {
+        if (!commentFromDb.getAuthorId().equals(userId)) {
             throw new NotFoundException(Constants.COMMENT_AUTHOR_NOT_MATCH);
         }
         commentRepository.deleteById(commentId);

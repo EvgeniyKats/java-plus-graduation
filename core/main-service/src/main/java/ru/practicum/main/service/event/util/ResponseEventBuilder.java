@@ -5,6 +5,8 @@ import client.StatsClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.practicum.interaction.dto.user.UserShortDto;
+import ru.practicum.interaction.feign.user.UserInternalFeign;
 import ru.practicum.main.service.comment.CommentRepository;
 import ru.practicum.main.service.comment.MapperComment;
 import ru.practicum.main.service.comment.dto.GetCommentDto;
@@ -26,9 +28,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static ru.practicum.main.service.Constants.DEFAULT_COMMENTS;
-import static ru.practicum.main.service.Constants.MIN_START_DATE;
+import static ru.practicum.interaction.Constants.DEFAULT_COMMENTS;
+import static ru.practicum.interaction.Constants.MIN_START_DATE;
 
 @Component
 @RequiredArgsConstructor
@@ -38,16 +41,19 @@ public class ResponseEventBuilder {
     private final MapperComment commentMapper;
     private final RequestRepository requestRepository;
     private final CommentRepository commentRepository;
+    private final UserInternalFeign userInternalFeign;
     private final StatsClient statsClient;
 
     public <T extends ResponseEvent> T buildOneEventResponseDto(Event event, Class<T> type) {
         T dto;
 
+        UserShortDto userShortDto = userInternalFeign.findUserShortById(event.getInitiatorId());
+
         if (type == EventFullDto.class) {
-            EventFullDto dtoTemp = eventMapper.toEventFullDto(event);
+            EventFullDto dtoTemp = eventMapper.toEventFullDto(event, userShortDto);
             dto = type.cast(dtoTemp);
         } else {
-            EventShortDto dtoTemp = eventMapper.toEventShortDto(event);
+            EventShortDto dtoTemp = eventMapper.toEventShortDto(event, userShortDto);
             dto = type.cast(dtoTemp);
         }
 
@@ -63,12 +69,18 @@ public class ResponseEventBuilder {
     public <T extends ResponseEvent> List<T> buildManyEventResponseDto(List<Event> events, Class<T> type) {
         Map<Long, T> dtoById = new HashMap<>();
 
+        Set<Long> userIds = events.stream()
+                .map(Event::getInitiatorId)
+                .collect(Collectors.toSet());
+
+        Map<Long, UserShortDto> userShortById = userInternalFeign.findManyUserShortsByIds(userIds);
+
         for (Event event : events) {
             if (type == EventFullDto.class) {
-                EventFullDto dtoTemp = eventMapper.toEventFullDto(event);
+                EventFullDto dtoTemp = eventMapper.toEventFullDto(event, userShortById.get(event.getInitiatorId()));
                 dtoById.put(event.getId(), type.cast(dtoTemp));
             } else {
-                EventShortDto dtoTemp = eventMapper.toEventShortDto(event);
+                EventShortDto dtoTemp = eventMapper.toEventShortDto(event, userShortById.get(event.getInitiatorId()));
                 dtoById.put(event.getId(), type.cast(dtoTemp));
             }
         }

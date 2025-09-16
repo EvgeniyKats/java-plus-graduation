@@ -19,7 +19,7 @@ import ru.practicum.main.service.event.service.param.GetEventAdminParam;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static ru.practicum.main.service.Constants.DATE_PATTERN;
+import static ru.practicum.interaction.Constants.DATE_PATTERN;
 
 @Slf4j
 @Controller

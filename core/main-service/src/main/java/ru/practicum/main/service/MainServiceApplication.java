@@ -6,8 +6,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan({"ru.practicum.main.service", "client"})
-@EnableFeignClients(basePackages = "client")
+@ComponentScan({"ru.practicum.main.service", "client", "ru.practicum.interaction.exception"})
+@EnableFeignClients(basePackages = {"client", "ru.practicum.interaction.feign"})
 public class MainServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(MainServiceApplication.class, args);
