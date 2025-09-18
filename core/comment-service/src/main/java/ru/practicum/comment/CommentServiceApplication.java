@@ -1,16 +1,16 @@
-package ru.practicum.user;
+package ru.practicum.comment;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication(scanBasePackages = {
-        "ru.practicum.user",
+        "ru.practicum.comment",
         "ru.practicum.logging",
         "ru.practicum.interaction.exception"})
 @EnableFeignClients(basePackages = {"client", "ru.practicum.interaction.feign"})
-public class UserServiceApplication {
+public class CommentServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(UserServiceApplication.class, args);
+        SpringApplication.run(CommentServiceApplication.class, args);
     }
 }

@@ -4,7 +4,6 @@ import org.springframework.cloud.openfeign.FeignClient;
 import ru.practicum.interaction.api.event.EventInternalApi;
 import ru.practicum.interaction.feign.config.FeignConfig;
 
-@FeignClient(name = "main-service", path = "/internal/events", configuration = FeignConfig.class)
-// TODO: временно используется main-service, изменить при добавлении сервиса event
+@FeignClient(name = "event-service", path = "/internal/events", configuration = FeignConfig.class)
 public interface EventInternalFeign extends EventInternalApi {
 }

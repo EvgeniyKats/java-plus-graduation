@@ -16,5 +16,8 @@ public interface Constants {
     String COMMENT_EVENT_NOT_MATCH = "Мероприятие к которому был написан комментарий не совпадает с указанным в запросе";
     String COMMENT_AUTHOR_NOT_MATCH = "Автор комментария не совпадает с пользователем, указанным в запросе";
     LocalDateTime MIN_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
-    Pageable DEFAULT_COMMENTS = PageRequest.of(0, 10, Sort.by("created").descending());
+    Pageable DEFAULT_COMMENTS_PAGEABLE = PageRequest.of(
+            0,
+            10,
+            Sort.by("created").descending());
 }
