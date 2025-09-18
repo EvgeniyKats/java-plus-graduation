@@ -34,16 +34,6 @@ CREATE TABLE IF NOT EXISTS events
     CONSTRAINT event_date_not_null CHECK (event_date <> NULL)
 );
 
-CREATE TABLE IF NOT EXISTS requests
-(
-    request_id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    requester_id BIGINT  NOT NULL,
-    event_id     BIGINT  NOT NULL,
-    status       INTEGER NOT NULL,
-    created      TIMESTAMP WITHOUT TIME ZONE,
-    CONSTRAINT created_not_null CHECK (created <> NULL)
-);
-
 CREATE TABLE IF NOT EXISTS compilations
 (
     compilation_id    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -80,12 +70,6 @@ ALTER TABLE locations
     DROP CONSTRAINT IF EXISTS fk_locations_event_id;
 ALTER TABLE locations
     ADD CONSTRAINT fk_locations_event_id FOREIGN KEY (event_id)
-        REFERENCES events (event_id) ON DELETE CASCADE;
-
-ALTER TABLE requests
-    DROP CONSTRAINT IF EXISTS fk_requests_event_id;
-ALTER TABLE requests
-    ADD CONSTRAINT fk_requests_event_id FOREIGN KEY (event_id)
         REFERENCES events (event_id) ON DELETE CASCADE;
 
 ALTER TABLE events_compilations

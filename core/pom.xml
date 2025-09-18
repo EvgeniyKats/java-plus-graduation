@@ -16,6 +16,7 @@
         <module>user-service</module>
         <module>interaction-api</module>
         <module>logging-starter</module>
+        <module>request-service</module>
     </modules>
 
     <properties>

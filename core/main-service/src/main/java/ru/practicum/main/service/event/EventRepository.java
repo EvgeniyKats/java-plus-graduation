@@ -3,7 +3,7 @@ package ru.practicum.main.service.event;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import ru.practicum.main.service.event.enums.EventState;
+import ru.practicum.interaction.dto.event.EventState;
 import ru.practicum.main.service.event.model.Event;
 
 import java.util.List;

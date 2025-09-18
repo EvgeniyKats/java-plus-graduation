@@ -12,3 +12,8 @@ spring:
       mode: always
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: UTC
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true

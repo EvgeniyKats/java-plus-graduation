@@ -7,23 +7,26 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.interaction.Constants;
-import ru.practicum.interaction.dto.user.UserDto;
+import ru.practicum.interaction.dto.comment.CommentDto;
+import ru.practicum.interaction.dto.comment.CommentSortType;
+import ru.practicum.interaction.dto.comment.GetCommentDto;
+import ru.practicum.interaction.dto.user.UserShortDto;
 import ru.practicum.interaction.exception.ConflictException;
 import ru.practicum.interaction.exception.NotFoundException;
 import ru.practicum.interaction.feign.user.UserInternalFeign;
 import ru.practicum.main.service.comment.CommentRepository;
 import ru.practicum.main.service.comment.MapperComment;
-import ru.practicum.main.service.comment.dto.CommentDto;
-import ru.practicum.main.service.comment.dto.GetCommentDto;
-import ru.practicum.main.service.comment.enums.CommentSortType;
 import ru.practicum.main.service.comment.model.Comment;
 import ru.practicum.main.service.event.EventRepository;
 import ru.practicum.main.service.event.model.Event;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static ru.practicum.main.service.event.enums.EventState.PUBLISHED;
+import static ru.practicum.interaction.dto.event.EventState.PUBLISHED;
 
 @Service
 @Transactional(readOnly = true)
@@ -38,7 +41,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public GetCommentDto addNewComment(Long userId, Long eventId, CommentDto commentDto) {
-        UserDto commentAuthor = userInternalFeign.findUserById(userId);
+        UserShortDto commentAuthor = userInternalFeign.findUserShortById(userId);
 
         Event commentEvent = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(Constants.EVENT_NOT_FOUND));
@@ -51,7 +54,9 @@ public class CommentServiceImpl implements CommentService {
         comment.setAuthorId(commentAuthor.getId());
         comment.setEvent(commentEvent);
         comment.setCreated(LocalDateTime.now());
-        return commentMapper.toGetCommentDto(commentRepository.save(comment));
+        commentRepository.save(comment);
+
+        return commentMapper.toGetCommentDto(comment, commentAuthor);
     }
 
     @Override
@@ -59,6 +64,7 @@ public class CommentServiceImpl implements CommentService {
     public GetCommentDto updateComment(Long userId, Long eventId, Long commentId, CommentDto commentDto) {
         Comment commentFromDb = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(Constants.COMMENT_NOT_FOUND));
+
         if (!commentFromDb.getEvent().getId().equals(eventId)) {
             throw new NotFoundException(Constants.COMMENT_EVENT_NOT_MATCH);
         }
@@ -69,7 +75,9 @@ public class CommentServiceImpl implements CommentService {
             throw new ConflictException("Комментарий может быть изменен только в первые 24 часа после создания");
         }
         commentFromDb.setText(commentDto.getText());
-        return commentMapper.toGetCommentDto(commentFromDb);
+        UserShortDto commentAuthor = userInternalFeign.findUserShortById(userId);
+
+        return commentMapper.toGetCommentDto(commentFromDb, commentAuthor);
     }
 
     @Override
@@ -104,7 +112,8 @@ public class CommentServiceImpl implements CommentService {
         if (!commentFromDb.getEvent().getId().equals(eventId)) {
             throw new NotFoundException(Constants.COMMENT_EVENT_NOT_MATCH);
         }
-        return commentMapper.toGetCommentDto(commentFromDb);
+        UserShortDto commentAuthor = userInternalFeign.findUserShortById(commentFromDb.getAuthorId());
+        return commentMapper.toGetCommentDto(commentFromDb, commentAuthor);
     }
 
     @Override
@@ -115,6 +124,15 @@ public class CommentServiceImpl implements CommentService {
         };
         Pageable pageable = PageRequest.of(from, size, sort);
         List<Comment> comments = commentRepository.findByEventId(eventId, pageable);
-        return comments.stream().map(commentMapper::toGetCommentDto).toList();
+
+        Set<Long> usersIds = comments.stream()
+                .map(Comment::getAuthorId)
+                .collect(Collectors.toSet());
+        Map<Long, UserShortDto> users = userInternalFeign.findManyUserShortsByIds(usersIds);
+
+
+        return comments.stream()
+                .map(comment -> commentMapper.toGetCommentDto(comment, users.get(comment.getAuthorId())))
+                .toList();
     }
 }

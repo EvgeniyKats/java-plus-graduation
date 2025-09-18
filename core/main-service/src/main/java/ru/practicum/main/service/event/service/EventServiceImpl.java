@@ -7,35 +7,33 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.interaction.dto.event.EventFullDto;
+import ru.practicum.interaction.dto.event.EventRequestStatusUpdateRequest;
+import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
+import ru.practicum.interaction.dto.event.EventShortDto;
+import ru.practicum.interaction.dto.event.EventState;
+import ru.practicum.interaction.dto.event.NewEventDto;
+import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
+import ru.practicum.interaction.dto.event.UpdateEventParam;
+import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
+import ru.practicum.interaction.dto.request.ParticipationRequestDto;
+import ru.practicum.interaction.dto.request.PathManyRequestsStatusDto;
 import ru.practicum.interaction.dto.user.UserDto;
 import ru.practicum.interaction.exception.BadRequestException;
 import ru.practicum.interaction.exception.ConflictException;
 import ru.practicum.interaction.exception.NotFoundException;
+import ru.practicum.interaction.feign.request.RequestInternalFeign;
 import ru.practicum.interaction.feign.user.UserInternalFeign;
 import ru.practicum.main.service.category.model.Category;
 import ru.practicum.main.service.category.repository.CategoryRepository;
 import ru.practicum.main.service.event.EventRepository;
 import ru.practicum.main.service.event.LocationRepository;
 import ru.practicum.main.service.event.MapperEvent;
-import ru.practicum.main.service.event.dto.EventFullDto;
-import ru.practicum.main.service.event.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.main.service.event.dto.EventRequestStatusUpdateResult;
-import ru.practicum.main.service.event.dto.EventShortDto;
-import ru.practicum.main.service.event.dto.NewEventDto;
-import ru.practicum.main.service.event.dto.UpdateEventAdminRequest;
-import ru.practicum.main.service.event.dto.UpdateEventParam;
-import ru.practicum.main.service.event.dto.UpdateEventUserRequest;
-import ru.practicum.main.service.event.enums.EventState;
 import ru.practicum.main.service.event.model.Event;
 import ru.practicum.main.service.event.model.QEvent;
 import ru.practicum.main.service.event.service.param.GetEventAdminParam;
 import ru.practicum.main.service.event.service.param.GetEventUserParam;
 import ru.practicum.main.service.event.util.ResponseEventBuilder;
-import ru.practicum.main.service.request.MapperRequest;
-import ru.practicum.main.service.request.RequestRepository;
-import ru.practicum.main.service.request.dto.ParticipationRequestDto;
-import ru.practicum.main.service.request.enums.RequestStatus;
-import ru.practicum.main.service.request.model.Request;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,12 +41,12 @@ import java.util.Objects;
 
 import static ru.practicum.interaction.Constants.CATEGORY_NOT_FOUND;
 import static ru.practicum.interaction.Constants.EVENT_NOT_FOUND;
-import static ru.practicum.main.service.event.dto.UpdateEventAdminRequest.StateAction.PUBLISH_EVENT;
-import static ru.practicum.main.service.event.dto.UpdateEventUserRequest.StateAction.SEND_TO_REVIEW;
-import static ru.practicum.main.service.event.enums.EventState.CANCELED;
-import static ru.practicum.main.service.event.enums.EventState.PENDING;
-import static ru.practicum.main.service.event.enums.EventState.PUBLISHED;
-import static ru.practicum.main.service.event.enums.EventState.REJECTED;
+import static ru.practicum.interaction.dto.event.EventState.CANCELED;
+import static ru.practicum.interaction.dto.event.EventState.PENDING;
+import static ru.practicum.interaction.dto.event.EventState.PUBLISHED;
+import static ru.practicum.interaction.dto.event.EventState.REJECTED;
+import static ru.practicum.interaction.dto.event.UpdateEventAdminRequest.StateAction.PUBLISH_EVENT;
+import static ru.practicum.interaction.dto.event.UpdateEventUserRequest.StateAction.SEND_TO_REVIEW;
 import static ru.practicum.main.service.event.util.ValidatorEventTime.isEventTimeBad;
 
 @Slf4j
@@ -58,8 +56,7 @@ import static ru.practicum.main.service.event.util.ValidatorEventTime.isEventTim
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final MapperEvent eventMapper;
-    private final RequestRepository requestRepository;
-    private final MapperRequest requestMapper;
+    private final RequestInternalFeign requestInternalFeign;
     private final UserInternalFeign userInternalFeign;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
@@ -202,81 +199,45 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
-        List<Request> requests = requestRepository.findAllByEventId(eventId);
-        return requests.stream().map(requestMapper::toParticipationRequestDto).toList();
+        userInternalFeign.findUserById(userId);
+        return requestInternalFeign.findAllByEventId(eventId);
     }
 
     @Override
     @Transactional
-    public EventRequestStatusUpdateResult updateEventRequests(Long userId, Long eventId, EventRequestStatusUpdateRequest updateRequest) {
-        EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
+    public EventRequestStatusUpdateResult updateEventRequests(Long userId,
+                                                              Long eventId,
+                                                              EventRequestStatusUpdateRequest updateRequest) {
+        userInternalFeign.findUserShortById(userId);
 
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
 
         if (isPreModerationOff(event.getRequestModeration(), event.getParticipantLimit())) {
-            return result;
+            return new EventRequestStatusUpdateResult();
         }
 
-        List<Request> requestsAll = requestRepository.findAllByEventId(eventId);
-        List<Request> requestsStatusPending = requestsAll.stream()
-                .filter(r -> r.getStatus() == RequestStatus.PENDING)
-                .filter(r -> updateRequest.getRequestIds().contains(r.getId()))
-                .toList();
+        PathManyRequestsStatusDto pathDto = new PathManyRequestsStatusDto(updateRequest.getRequestIds(),
+                updateRequest.getStatus(),
+                eventId,
+                event.getParticipantLimit());
 
-        if (requestsStatusPending.size() != updateRequest.getRequestIds().size()) {
-            throw new ConflictException("Один или более запросов не находится в статусе PENDING");
-        }
-
-        if (updateRequest.getStatus().equals(EventRequestStatusUpdateRequest.Status.REJECTED)) {
-            for (Request request : requestsStatusPending) {
-                request.setStatus(RequestStatus.REJECTED);
-                ParticipationRequestDto dto = requestMapper.toParticipationRequestDto(request);
-                result.getRejectedRequests().add(dto);
-            }
-
-            return result;
-        }
-
-        long participantCount = requestsAll.stream()
-                .filter(r -> r.getStatus() == RequestStatus.CONFIRMED)
-                .count();
-
-        if (participantCount == event.getParticipantLimit()) {
-            throw new ConflictException("Достигнут лимит заявок на событие");
-        }
-
-        long limitLeft = event.getParticipantLimit() - participantCount;
-
-        int idx = 0;
-        while (idx < requestsStatusPending.size() && limitLeft > 0) {
-            Request request = requestsStatusPending.get(idx);
-            request.setStatus(RequestStatus.CONFIRMED);
-
-            ParticipationRequestDto dto = requestMapper.toParticipationRequestDto(request);
-            result.getConfirmedRequests().add(dto);
-
-            limitLeft--;
-            idx++;
-        }
-
-        while (idx < requestsStatusPending.size()) {
-            Request request = requestsStatusPending.get(idx);
-            request.setStatus(RequestStatus.CANCELED);
-
-            ParticipationRequestDto dto = requestMapper.toParticipationRequestDto(request);
-            result.getRejectedRequests().add(dto);
-
-            idx++;
-        }
-
-        return result;
+        return requestInternalFeign.updateEventRequests(pathDto);
     }
 
     @Override
-    public EventFullDto getEventById(Long eventId) {
-        Event eventDomain = eventRepository.findByIdAndState(eventId, PUBLISHED)
+    public EventFullDto getEventById(Long eventId, boolean isInternalRequest) {
+        Event eventDomain = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
+
+        if (eventDomain.getState() != PUBLISHED) {
+            if (isInternalRequest) {
+                throw new ConflictException("Событие ещё не опубликовано.");
+            } else {
+                throw new NotFoundException(EVENT_NOT_FOUND);
+            }
+        }
+
         return responseEventBuilder.buildOneEventResponseDto(eventDomain, EventFullDto.class);
     }
 

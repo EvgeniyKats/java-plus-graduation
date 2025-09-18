@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.interaction.exception.BadRequestException;
-import ru.practicum.main.service.event.dto.EventFullDto;
-import ru.practicum.main.service.event.dto.EventShortDto;
-import ru.practicum.main.service.event.enums.EventSortType;
+import ru.practicum.interaction.dto.event.EventFullDto;
+import ru.practicum.interaction.dto.event.EventShortDto;
+import ru.practicum.interaction.dto.event.EventSortType;
 import ru.practicum.main.service.event.service.EventService;
 import ru.practicum.main.service.event.service.param.GetEventUserParam;
 import ru.practicum.stats.dto.EndpointHitDto;
@@ -86,7 +86,7 @@ public class PublicEventController {
     public ResponseEntity<EventFullDto> getEventById(@PathVariable Long eventId, HttpServletRequest request) {
         log.info("Пришел GET запрос на /events/{} Public Event Controller", eventId);
         doHit(request);
-        EventFullDto event = eventService.getEventById(eventId);
+        EventFullDto event = eventService.getEventById(eventId, false);
         log.info("Отправлен ответ на GET /events/{} c телом: {}", eventId, event);
         return ResponseEntity.ok(event);
     }

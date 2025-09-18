@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.main.service.category.dto.CategoryDto;
-import ru.practicum.main.service.category.dto.NewCategoryDto;
+import ru.practicum.interaction.dto.category.CategoryDto;
+import ru.practicum.interaction.dto.category.NewCategoryDto;
 import ru.practicum.main.service.category.service.CategoryService;
 
 @Slf4j

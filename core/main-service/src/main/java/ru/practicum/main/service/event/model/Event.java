@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.main.service.category.model.Category;
-import ru.practicum.main.service.event.enums.EventState;
+import ru.practicum.interaction.dto.event.EventState;
 
 import java.time.LocalDateTime;
 

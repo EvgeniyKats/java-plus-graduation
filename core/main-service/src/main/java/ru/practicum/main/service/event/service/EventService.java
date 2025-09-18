@@ -1,16 +1,16 @@
 package ru.practicum.main.service.event.service;
 
 import org.springframework.data.domain.Pageable;
-import ru.practicum.main.service.event.dto.EventFullDto;
-import ru.practicum.main.service.event.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.main.service.event.dto.EventRequestStatusUpdateResult;
-import ru.practicum.main.service.event.dto.EventShortDto;
-import ru.practicum.main.service.event.dto.NewEventDto;
-import ru.practicum.main.service.event.dto.UpdateEventAdminRequest;
-import ru.practicum.main.service.event.dto.UpdateEventUserRequest;
+import ru.practicum.interaction.dto.event.EventFullDto;
+import ru.practicum.interaction.dto.event.EventRequestStatusUpdateRequest;
+import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
+import ru.practicum.interaction.dto.event.EventShortDto;
+import ru.practicum.interaction.dto.event.NewEventDto;
+import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
+import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
+import ru.practicum.interaction.dto.request.ParticipationRequestDto;
 import ru.practicum.main.service.event.service.param.GetEventAdminParam;
 import ru.practicum.main.service.event.service.param.GetEventUserParam;
-import ru.practicum.main.service.request.dto.ParticipationRequestDto;
 
 import java.util.List;
 
@@ -34,5 +34,11 @@ public interface EventService {
 
     EventRequestStatusUpdateResult updateEventRequests(Long userId, Long eventId, EventRequestStatusUpdateRequest updateRequest);
 
-    EventFullDto getEventById(Long eventId);
+    /**
+     * @param isInternalRequest влияет на тип исключения, если событие ещё не опубликовано,
+     *                          true - ConflictException, false - NotFoundException
+     * @throws ru.practicum.interaction.exception.NotFoundException событие не найдено или не опубликовано
+     * @throws ru.practicum.interaction.exception.ConflictException событие не опубликовано
+     */
+    EventFullDto getEventById(Long eventId, boolean isInternalRequest);
 }

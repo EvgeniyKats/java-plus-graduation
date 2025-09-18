@@ -1,8 +1,8 @@
 package ru.practicum.main.service.comment.service;
 
-import ru.practicum.main.service.comment.dto.CommentDto;
-import ru.practicum.main.service.comment.dto.GetCommentDto;
-import ru.practicum.main.service.comment.enums.CommentSortType;
+import ru.practicum.interaction.dto.comment.CommentDto;
+import ru.practicum.interaction.dto.comment.GetCommentDto;
+import ru.practicum.interaction.dto.comment.CommentSortType;
 
 import java.util.List;
 

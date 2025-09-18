@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.main.service.event.dto.EventFullDto;
-import ru.practicum.main.service.event.dto.UpdateEventAdminRequest;
-import ru.practicum.main.service.event.enums.EventState;
+import ru.practicum.interaction.dto.event.EventFullDto;
+import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
+import ru.practicum.interaction.dto.event.EventState;
 import ru.practicum.main.service.event.service.EventService;
 import ru.practicum.main.service.event.service.param.GetEventAdminParam;
 

@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import ru.practicum.main.service.comment.dto.CommentDto;
-import ru.practicum.main.service.comment.dto.GetCommentDto;
+import ru.practicum.interaction.dto.comment.CommentDto;
+import ru.practicum.interaction.dto.comment.GetCommentDto;
 import ru.practicum.main.service.comment.service.CommentService;
 
 @Controller

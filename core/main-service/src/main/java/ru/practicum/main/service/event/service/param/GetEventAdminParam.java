@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Pageable;
-import ru.practicum.main.service.event.enums.EventState;
+import ru.practicum.interaction.dto.event.EventState;
 
 import java.time.LocalDateTime;
 import java.util.List;

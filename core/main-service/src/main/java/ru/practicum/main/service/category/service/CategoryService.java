@@ -1,8 +1,8 @@
 package ru.practicum.main.service.category.service;
 
 import org.springframework.data.domain.Pageable;
-import ru.practicum.main.service.category.dto.CategoryDto;
-import ru.practicum.main.service.category.dto.NewCategoryDto;
+import ru.practicum.interaction.dto.category.CategoryDto;
+import ru.practicum.interaction.dto.category.NewCategoryDto;
 
 import java.util.List;
 

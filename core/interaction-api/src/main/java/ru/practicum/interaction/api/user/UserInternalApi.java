@@ -19,5 +19,5 @@ public interface UserInternalApi {
     UserShortDto findUserShortById(@PathVariable @Positive Long id);
 
     @GetMapping
-    Map<Long, UserShortDto> findManyUserShortsByIds(@RequestParam Collection<Long> ids);
+    Map<Long, UserShortDto> findManyUserShortsByIds(@RequestParam Collection<@Positive Long> ids);
 }

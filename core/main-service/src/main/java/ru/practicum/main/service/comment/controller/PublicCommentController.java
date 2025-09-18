@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.practicum.main.service.comment.dto.GetCommentDto;
-import ru.practicum.main.service.comment.enums.CommentSortType;
+import ru.practicum.interaction.dto.comment.GetCommentDto;
+import ru.practicum.interaction.dto.comment.CommentSortType;
 import ru.practicum.main.service.comment.service.CommentService;
 
 import java.util.List;

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.main.service.event.dto.EventShortDto;
+import ru.practicum.interaction.dto.event.EventShortDto;
 
 import java.util.Set;
 

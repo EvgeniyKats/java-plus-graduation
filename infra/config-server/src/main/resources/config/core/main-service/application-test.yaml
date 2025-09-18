@@ -4,9 +4,9 @@ spring:
       on-profile: test
   datasource:
     driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:main
-    username: main
-    password: main
+    url: jdbc:h2:mem:main-test
+    username: main-test
+    password: main-test
   h2:
     console.enabled: true
   jpa:
@@ -21,5 +21,5 @@ hibernate:
   show_sql: TRUE
 
 logging:
-    ru:
-      practicum: TRACE
+  ru:
+    practicum: TRACE
