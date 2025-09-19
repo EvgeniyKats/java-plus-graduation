@@ -44,6 +44,9 @@ public class FeignErrorDecoder implements ErrorDecoder {
             case 500 -> {
                 return new InternalServerException("Server error occurred");
             }
+            case 503 -> {
+                return new ServiceUnavailableException(msg);
+            }
             // для других кодов используем стандартное поведение
             default -> {
                 return defaultDecoder.decode(methodKey, response);

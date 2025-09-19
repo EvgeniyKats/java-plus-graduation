@@ -7,7 +7,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication(scanBasePackages = {
         "ru.practicum.request",
         "ru.practicum.logging",
-        "ru.practicum.interaction.exception"})
+        "ru.practicum.interaction.exception",
+        "ru.practicum.interaction.feign"})
 @EnableFeignClients(basePackages = {"client", "ru.practicum.interaction.feign"})
 public class RequestServiceApplication {
     public static void main(String[] args) {

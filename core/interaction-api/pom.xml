@@ -48,6 +48,11 @@
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-okhttp</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>logging-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
