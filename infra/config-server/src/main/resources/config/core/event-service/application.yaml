@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:7432/main
-    username: main
-    password: main
+    url: jdbc:postgresql://localhost:5501/event
+    username: event
+    password: event
   sql:
     init:
       mode: always

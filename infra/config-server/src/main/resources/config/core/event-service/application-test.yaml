@@ -4,9 +4,9 @@ spring:
       on-profile: test
   datasource:
     driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:main-test
-    username: main-test
-    password: main-test
+    url: jdbc:h2:mem:event-test
+    username: event-test
+    password: event-test
   h2:
     console.enabled: true
   jpa:
