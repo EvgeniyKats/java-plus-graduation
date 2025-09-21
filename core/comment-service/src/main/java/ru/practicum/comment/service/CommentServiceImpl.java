@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import static ru.practicum.interaction.dto.event.EventState.PUBLISHED;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
@@ -39,41 +38,17 @@ public class CommentServiceImpl implements CommentService {
     private final EventInternalFeign eventInternalFeign;
 
     @Override
-    @Transactional
     public GetCommentDto addNewComment(Long userId, Long eventId, CommentDto commentDto) {
         UserShortDto commentAuthor = userInternalFeign.findUserShortById(userId);
-
         EventFullDto event = eventInternalFeign.findById(eventId);
-
-        if (!event.getState().equals(PUBLISHED)) {
-            throw new ConflictException("Событие ещё не опубликовано eventId=" + eventId);
-        }
-
-        Comment comment = commentMapper.toComment(commentDto, commentAuthor.getId(), event.getId());
-        commentRepository.save(comment);
-
-        return commentMapper.toGetCommentDto(comment, commentAuthor);
+        return addNewCommentInTransaction(event, commentAuthor, commentDto);
     }
 
     @Override
-    @Transactional
     public GetCommentDto updateComment(Long userId, Long eventId, Long commentId, CommentDto commentDto) {
-        Comment commentFromDb = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException(Constants.COMMENT_NOT_FOUND));
-
-        if (!commentFromDb.getEventId().equals(eventId)) {
-            throw new NotFoundException(Constants.COMMENT_EVENT_NOT_MATCH);
-        }
-        if (!commentFromDb.getAuthorId().equals(userId)) {
-            throw new NotFoundException(Constants.COMMENT_AUTHOR_NOT_MATCH);
-        }
-        if (commentFromDb.getCreated().isBefore(LocalDateTime.now().minusDays(1))) {
-            throw new ConflictException("Комментарий может быть изменен только в первые 24 часа после создания");
-        }
-        commentFromDb.setText(commentDto.getText());
         UserShortDto commentAuthor = userInternalFeign.findUserShortById(userId);
-
-        return commentMapper.toGetCommentDto(commentFromDb, commentAuthor);
+        Comment comment = updateCommentInTransaction(userId, eventId, commentId, commentDto);
+        return commentMapper.toGetCommentDto(comment, commentAuthor);
     }
 
     @Override
@@ -102,6 +77,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GetCommentDto getCommentById(Long eventId, Long commentId) {
         Comment commentFromDb = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(Constants.COMMENT_NOT_FOUND));
@@ -112,6 +88,7 @@ public class CommentServiceImpl implements CommentService {
         return commentMapper.toGetCommentDto(commentFromDb, commentAuthor);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<GetCommentDto> getEventComments(Long eventId, Integer from, Integer size, CommentSortType sortType) {
         Sort sort = switch (sortType) {
@@ -123,16 +100,49 @@ public class CommentServiceImpl implements CommentService {
         return buildResponseWithAuthors(comments);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<GetCommentDto> findByEventId(Long eventId, Pageable pageable) {
         List<Comment> comments = commentRepository.findByEventId(eventId, pageable);
         return buildResponseWithAuthors(comments);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<GetCommentDto> findLastCommentsForManyEvents(Set<Long> eventIds) {
         List<Comment> comments = commentRepository.findLastCommentsForManyEvents(eventIds);
         return buildResponseWithAuthors(comments);
+    }
+
+    @Transactional
+    private GetCommentDto addNewCommentInTransaction(EventFullDto event, UserShortDto author, CommentDto commentDto) {
+        if (!event.getState().equals(PUBLISHED)) {
+            throw new ConflictException("Событие ещё не опубликовано eventId=" + event.getId());
+        }
+
+        Comment comment = commentMapper.toComment(commentDto, author.getId(), event.getId());
+        commentRepository.save(comment);
+        return commentMapper.toGetCommentDto(comment, author);
+    }
+
+    @Transactional
+    private Comment updateCommentInTransaction(Long userId, Long eventId, Long commentId, CommentDto commentDto) {
+        Comment commentFromDb = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException(Constants.COMMENT_NOT_FOUND));
+
+        if (!commentFromDb.getEventId().equals(eventId)) {
+            throw new NotFoundException(Constants.COMMENT_EVENT_NOT_MATCH);
+        }
+        if (!commentFromDb.getAuthorId().equals(userId)) {
+            throw new NotFoundException(Constants.COMMENT_AUTHOR_NOT_MATCH);
+        }
+        if (commentFromDb.getCreated().isBefore(LocalDateTime.now().minusDays(1))) {
+            throw new ConflictException("Комментарий может быть изменен только в первые 24 часа после создания");
+        }
+        commentFromDb.setText(commentDto.getText());
+        commentRepository.save(commentFromDb);
+
+        return commentFromDb;
     }
 
     private List<GetCommentDto> buildResponseWithAuthors(List<Comment> comments) {

@@ -1,8 +1,8 @@
 package ru.practicum.request.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.interaction.dto.event.EventFullDto;
 import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
 import ru.practicum.interaction.dto.event.EventState;
@@ -11,7 +11,6 @@ import ru.practicum.interaction.dto.request.ConfirmedRequestsDto;
 import ru.practicum.interaction.dto.request.ParticipationRequestDto;
 import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
 import ru.practicum.interaction.dto.request.RequestStatus;
-import ru.practicum.interaction.dto.user.UserDto;
 import ru.practicum.interaction.exception.ConflictException;
 import ru.practicum.interaction.exception.DuplicateException;
 import ru.practicum.interaction.exception.NotFoundException;
@@ -34,6 +33,7 @@ public class RequestServiceImpl implements RequestService {
     private final UserInternalFeign userInternalFeign;
     private final MapperRequest mapperRequest;
 
+    @Transactional(readOnly = true)
     @Override
     public List<ParticipationRequestDto> getParticipationRequests(Long userId) {
         List<Request> requests = requestRepository.findAllByRequesterId(userId);
@@ -41,62 +41,20 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto createParticipationRequest(Long userId, Long eventId) {
+        EventFullDto event = eventInternalFeign.findById(eventId);
+        userInternalFeign.findUserById(userId);
 
-        EventFullDto eventShortDto = eventInternalFeign.findById(eventId);
-
-        UserDto user = userInternalFeign.findUserById(userId);
-
-        if (requestRepository.existsByEventIdAndRequesterId(eventId, userId)) {
-            throw new DuplicateException("Запрос на такое событие уже есть");
-        }
-
-        if (!eventShortDto.getState().equals(EventState.PUBLISHED)) {
-            throw new ConflictException("Невозможно создать запрос на неопубликованное событие");
-        }
-
-
-        if (eventShortDto.getParticipantLimit() != 0
-            && requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED)
-               >= eventShortDto.getParticipantLimit()) {
-            throw new ConflictException("Достигнут лимит запросов на событие");
-        }
-
-        if (eventShortDto.getInitiator().getId().equals(userId)) {
-            throw new ConflictException("Невозможно создать запрос будучи инициатором события");
-        }
-
-        boolean isPreModerationOn = isPreModerationOn(eventShortDto.getRequestModeration(),
-                eventShortDto.getParticipantLimit());
-        Request request = new Request(
-                null,
-                user.getId(),
-                eventShortDto.getId(),
-                isPreModerationOn ? RequestStatus.PENDING : RequestStatus.CONFIRMED,
-                LocalDateTime.now()
-        );
-
-        request = requestRepository.save(request);
-
-        return mapperRequest.toParticipationRequestDto(request);
+        return createRequestInTransaction(event, userId);
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto cancelParticipationRequest(Long userId, Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow(() ->
-                new NotFoundException("Запрос не найден"));
-
         userInternalFeign.findUserById(userId); // Выбросится исключение если пользователь не найден
-
-        request.setStatus(RequestStatus.CANCELED);
-
-        request = requestRepository.save(request);
-
-        return mapperRequest.toParticipationRequestDto(request);
+        return cancelRequestInTransaction(requestId);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ParticipationRequestDto> findAllByEventId(Long eventId) {
         List<Request> requests = requestRepository.findAllByEventId(eventId);
@@ -154,6 +112,7 @@ public class RequestServiceImpl implements RequestService {
         return result;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ConfirmedRequestsDto> findConfirmedRequestByEventIds(Collection<Long> eventIds) {
         List<ConfirmedRequests> confirmedRequests =
@@ -162,6 +121,51 @@ public class RequestServiceImpl implements RequestService {
         return confirmedRequests.stream()
                 .map(mapperRequest::toConfirmedRequestsDto)
                 .toList();
+    }
+
+    @Transactional
+    private ParticipationRequestDto createRequestInTransaction(EventFullDto event, Long userId) {
+        if (requestRepository.existsByEventIdAndRequesterId(event.getId(), userId)) {
+            throw new DuplicateException("Запрос на такое событие уже есть");
+        }
+
+        if (!event.getState().equals(EventState.PUBLISHED)) {
+            throw new ConflictException("Невозможно создать запрос на неопубликованное событие");
+        }
+
+        if (event.getParticipantLimit() != 0
+            && requestRepository.countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED)
+               >= event.getParticipantLimit()) {
+            throw new ConflictException("Достигнут лимит запросов на событие");
+        }
+
+        if (event.getInitiator().getId().equals(userId)) {
+            throw new ConflictException("Невозможно создать запрос будучи инициатором события");
+        }
+
+        boolean isPreModerationOn = isPreModerationOn(event.getRequestModeration(),
+                event.getParticipantLimit());
+        Request request = new Request(
+                null,
+                userId,
+                event.getId(),
+                isPreModerationOn ? RequestStatus.PENDING : RequestStatus.CONFIRMED,
+                LocalDateTime.now()
+        );
+
+        requestRepository.save(request);
+        return mapperRequest.toParticipationRequestDto(request);
+    }
+
+    @Transactional
+    private ParticipationRequestDto cancelRequestInTransaction(Long requestId) {
+        Request request = requestRepository.findById(requestId).orElseThrow(() ->
+                new NotFoundException("Запрос не найден"));
+
+        request.setStatus(RequestStatus.CANCELED);
+
+        requestRepository.save(request);
+        return mapperRequest.toParticipationRequestDto(request);
     }
 
     private boolean isPreModerationOn(boolean moderationStatus, int limit) {

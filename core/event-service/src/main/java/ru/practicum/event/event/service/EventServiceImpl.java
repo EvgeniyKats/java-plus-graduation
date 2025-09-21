@@ -50,7 +50,6 @@ import static ru.practicum.interaction.dto.event.UpdateEventUserRequest.StateAct
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final LocationRepository locationRepository;
@@ -60,6 +59,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final ResponseEventBuilder responseEventBuilder;
 
+    @Transactional(readOnly = true)
     @Override
     public List<EventFullDto> getEventsByAdmin(GetEventAdminParam param) {
         QEvent event = QEvent.event;
@@ -88,6 +88,7 @@ public class EventServiceImpl implements EventService {
         return responseEventBuilder.buildManyEventResponseDto(events, EventFullDto.class);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<EventShortDto> getEventsByUser(GetEventUserParam param) {
         QEvent event = QEvent.event;
@@ -126,6 +127,7 @@ public class EventServiceImpl implements EventService {
         return eventDtos;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<EventShortDto> getAllUsersEvents(Long userId, Pageable page) {
         List<Event> events = eventRepository.findByInitiatorId(userId, page);
@@ -133,24 +135,17 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional
     public EventFullDto addNewEvent(Long userId, NewEventDto eventDto) {
         if (isEventTimeBad(eventDto.getEventDate(), 2)) {
             throw new BadRequestException("Дата и время на которые намечено событие не может быть раньше, чем через два часа от текущего момента");
         }
+        userInternalFeign.findUserById(userId);
+        Event event = addNewEventInTransaction(eventDto, userId);
 
-        Category category = categoryRepository.findById(eventDto.getCategory()).orElseThrow(
-                () -> new NotFoundException(CATEGORY_NOT_FOUND));
-        Long initiatorId = userInternalFeign.findUserById(userId).getId();
-
-        Event event = eventMapper.toEvent(eventDto, category, initiatorId);
-        event.getLocation().setEvent(event);
-        locationRepository.save(event.getLocation());
-
-        eventRepository.save(event);
         return responseEventBuilder.buildOneEventResponseDto(event, EventFullDto.class);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public EventFullDto getEventForUser(Long userId, Long eventId) {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
@@ -202,7 +197,6 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional
     public EventRequestStatusUpdateResult updateEventRequests(Long userId,
                                                               Long eventId,
                                                               EventRequestStatusUpdateRequest updateRequest) {
@@ -223,6 +217,7 @@ public class EventServiceImpl implements EventService {
         return requestInternalFeign.updateEventRequests(patchDto);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public EventFullDto getEventById(Long eventId, boolean isInternalRequest) {
         Event eventDomain = eventRepository.findById(eventId)
@@ -274,6 +269,19 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEventByAdminRequest(event, updateDto);
 
         return responseEventBuilder.buildOneEventResponseDto(event, EventFullDto.class);
+    }
+
+    @Transactional
+    private Event addNewEventInTransaction(NewEventDto eventDto, Long userId) {
+        Category category = categoryRepository.findById(eventDto.getCategory()).orElseThrow(
+                () -> new NotFoundException(CATEGORY_NOT_FOUND));
+
+        Event eventFromDb = eventMapper.toEvent(eventDto, category, userId);
+        eventFromDb.getLocation().setEvent(eventFromDb);
+        locationRepository.save(eventFromDb.getLocation());
+
+        eventRepository.save(eventFromDb);
+        return eventFromDb;
     }
 
     private boolean isPreModerationOff(boolean moderationStatus, int limit) {

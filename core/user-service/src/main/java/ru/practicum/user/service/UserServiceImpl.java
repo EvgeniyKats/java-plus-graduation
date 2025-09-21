@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -41,9 +42,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = mapperUser.toUser(newUserRequest);
-
-        user = userRepository.save(user);
-
+        userRepository.save(user);
         return mapperUser.toUserDto(user);
     }
 
@@ -76,8 +75,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Map<Long, UserShortDto> findManyUserShortsByIds(Collection<Long> ids) {
         Collection<UserShort> userShorts = userRepository.findManyUserShortByIds(ids);
-
-        System.out.println(userShorts.size());
 
         if (userShorts.size() < ids.size()) {
             throw new NotFoundException(Constants.USER_NOT_FOUND);
