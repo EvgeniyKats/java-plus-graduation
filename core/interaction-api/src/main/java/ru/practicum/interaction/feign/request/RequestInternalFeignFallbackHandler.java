@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
 import ru.practicum.interaction.dto.request.ConfirmedRequestsDto;
 import ru.practicum.interaction.dto.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.request.PathManyRequestsStatusDto;
+import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +26,7 @@ public class RequestInternalFeignFallbackHandler implements RequestInternalFeign
     }
 
     @Override
-    public EventRequestStatusUpdateResult updateEventRequests(PathManyRequestsStatusDto pathDto) {
+    public EventRequestStatusUpdateResult updateEventRequests(PatchManyRequestsStatusDto patchDto) {
         throw requestFallbackException;
     }
 }

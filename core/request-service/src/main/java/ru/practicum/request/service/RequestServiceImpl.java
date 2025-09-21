@@ -9,7 +9,7 @@ import ru.practicum.interaction.dto.event.EventState;
 import ru.practicum.interaction.dto.event.EventStatus;
 import ru.practicum.interaction.dto.request.ConfirmedRequestsDto;
 import ru.practicum.interaction.dto.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.request.PathManyRequestsStatusDto;
+import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
 import ru.practicum.interaction.dto.request.RequestStatus;
 import ru.practicum.interaction.dto.user.UserDto;
 import ru.practicum.interaction.exception.ConflictException;
@@ -105,20 +105,20 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
-    public EventRequestStatusUpdateResult updateEventRequests(PathManyRequestsStatusDto pathDto) {
+    public EventRequestStatusUpdateResult updateEventRequests(PatchManyRequestsStatusDto patchDto) {
         EventRequestStatusUpdateResult result = new EventRequestStatusUpdateResult();
 
-        List<Request> requestsAll = requestRepository.findAllByEventId(pathDto.eventId());
+        List<Request> requestsAll = requestRepository.findAllByEventId(patchDto.eventId());
         List<Request> requestsStatusPending = requestsAll.stream()
                 .filter(r -> r.getStatus() == RequestStatus.PENDING)
-                .filter(r -> pathDto.requestIds().contains(r.getId()))
+                .filter(r -> patchDto.requestIds().contains(r.getId()))
                 .toList();
 
-        if (requestsStatusPending.size() != pathDto.requestIds().size()) {
+        if (requestsStatusPending.size() != patchDto.requestIds().size()) {
             throw new ConflictException("Один или более запросов не находится в статусе PENDING");
         }
 
-        if (pathDto.status().equals(EventStatus.REJECTED)) {
+        if (patchDto.status().equals(EventStatus.REJECTED)) {
             for (Request request : requestsStatusPending) {
                 request.setStatus(RequestStatus.REJECTED);
                 ParticipationRequestDto dto = mapperRequest.toParticipationRequestDto(request);
@@ -132,7 +132,7 @@ public class RequestServiceImpl implements RequestService {
                 .filter(r -> r.getStatus() == RequestStatus.CONFIRMED)
                 .count();
 
-        long limitLeft = pathDto.participantLimit() - participantCount;
+        long limitLeft = patchDto.participantLimit() - participantCount;
 
         if (limitLeft == 0) {
             throw new ConflictException("Достигнут лимит заявок на событие");

@@ -8,7 +8,7 @@ import ru.practicum.interaction.api.request.RequestInternalApi;
 import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
 import ru.practicum.interaction.dto.request.ConfirmedRequestsDto;
 import ru.practicum.interaction.dto.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.request.PathManyRequestsStatusDto;
+import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
 import ru.practicum.logging.Logging;
 import ru.practicum.request.service.RequestService;
 
@@ -35,7 +35,7 @@ public class InternalRequestController implements RequestInternalApi {
 
     @Logging
     @Override
-    public EventRequestStatusUpdateResult updateEventRequests(PathManyRequestsStatusDto pathDto) {
-        return requestService.updateEventRequests(pathDto);
+    public EventRequestStatusUpdateResult updateEventRequests(PatchManyRequestsStatusDto patchDto) {
+        return requestService.updateEventRequests(patchDto);
     }
 }

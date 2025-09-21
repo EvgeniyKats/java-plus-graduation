@@ -17,7 +17,7 @@ import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
 import ru.practicum.interaction.dto.event.UpdateEventParam;
 import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
 import ru.practicum.interaction.dto.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.request.PathManyRequestsStatusDto;
+import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
 import ru.practicum.interaction.dto.user.UserDto;
 import ru.practicum.interaction.exception.BadRequestException;
 import ru.practicum.interaction.exception.ConflictException;
@@ -217,12 +217,12 @@ public class EventServiceImpl implements EventService {
             return new EventRequestStatusUpdateResult();
         }
 
-        PathManyRequestsStatusDto pathDto = new PathManyRequestsStatusDto(updateRequest.getRequestIds(),
+        PatchManyRequestsStatusDto patchDto = new PatchManyRequestsStatusDto(updateRequest.getRequestIds(),
                 updateRequest.getStatus(),
                 eventId,
                 event.getParticipantLimit());
 
-        return requestInternalFeign.updateEventRequests(pathDto);
+        return requestInternalFeign.updateEventRequests(patchDto);
     }
 
     @Override

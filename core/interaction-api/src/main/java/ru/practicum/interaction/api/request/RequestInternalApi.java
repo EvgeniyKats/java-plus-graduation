@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
 import ru.practicum.interaction.dto.request.ConfirmedRequestsDto;
 import ru.practicum.interaction.dto.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.request.PathManyRequestsStatusDto;
+import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,5 +23,5 @@ public interface RequestInternalApi {
             @RequestParam Collection<@Positive Long> eventIds);
 
     @PatchMapping
-    EventRequestStatusUpdateResult updateEventRequests(@Valid @RequestBody PathManyRequestsStatusDto pathDto);
+    EventRequestStatusUpdateResult updateEventRequests(@Valid @RequestBody PatchManyRequestsStatusDto patchDto);
 }

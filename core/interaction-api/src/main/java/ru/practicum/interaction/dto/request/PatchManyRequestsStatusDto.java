@@ -4,7 +4,7 @@ import ru.practicum.interaction.dto.event.EventStatus;
 
 import java.util.Set;
 
-public record PathManyRequestsStatusDto(
+public record PatchManyRequestsStatusDto(
         Set<Long> requestIds,
         EventStatus status,
         Long eventId,
