@@ -102,13 +102,8 @@ public class ResponseEventBuilder {
         List<GetCommentDto> comments = getManyEventsComments(eventById.keySet());
 
         comments.forEach(comment -> {
-            T t = eventById.get(comment.getEventId());
-
-            if (t.getComments() == null) {
-                t.setComments(new ArrayList<>());
-            }
-
-            t.getComments().add(comment);
+            T event = eventById.get(comment.getEventId());
+            event.getComments().add(comment);
         });
 
         return new ArrayList<>(eventById.values());

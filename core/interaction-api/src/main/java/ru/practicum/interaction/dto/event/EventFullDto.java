@@ -65,5 +65,6 @@ public class EventFullDto implements ResponseEvent {
 
     private long views;
 
+    @Builder.Default
     private List<GetCommentDto> comments = new ArrayList<>();
 }

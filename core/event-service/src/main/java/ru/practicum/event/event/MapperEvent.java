@@ -1,31 +1,26 @@
 package ru.practicum.event.event;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.Named;
-import ru.practicum.interaction.dto.user.UserShortDto;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import ru.practicum.event.category.model.Category;
+import ru.practicum.event.event.model.Event;
 import ru.practicum.interaction.dto.event.EventFullDto;
 import ru.practicum.interaction.dto.event.EventShortDto;
 import ru.practicum.interaction.dto.event.NewEventDto;
 import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
-import ru.practicum.interaction.dto.event.UpdateEventParam;
 import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
-import ru.practicum.interaction.dto.event.EventState;
-import ru.practicum.event.event.model.Event;
+import ru.practicum.interaction.dto.user.UserShortDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MapperEvent {
-    @Mapping(source = "category", target = "category.id", ignore = true)
-    Event toEvent(NewEventDto newEventDto);
-
-    @Mapping(source = "category", target = "category.id", ignore = true)
-    @Mapping(source = "stateAction", target = "state", qualifiedByName = "stateFromAdminAction")
-    Event toEvent(UpdateEventAdminRequest updateEventAdminRequest);
-
-    @Mapping(source = "category", target = "category.id", ignore = true)
-    @Mapping(source = "stateAction", target = "state", qualifiedByName = "stateFromUserAction")
-    Event toEvent(UpdateEventUserRequest updateEventUserRequest);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "category", target = "category")
+    @Mapping(source = "initiatorId", target = "initiatorId")
+    Event toEvent(NewEventDto newEventDto, Category category, Long initiatorId);
 
     @Mapping(source = "event.id", target = "id")
     @Mapping(source = "userShortDto", target = "initiator")
@@ -35,33 +30,17 @@ public interface MapperEvent {
     @Mapping(source = "userShortDto", target = "initiator")
     EventFullDto toEventFullDto(Event event, UserShortDto userShortDto);
 
-    UpdateEventParam toUpdateParam(UpdateEventAdminRequest request);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(source = "request.location.latitude", target = "location.latitude")
+    @Mapping(source = "request.location.longitude", target = "location.longitude")
+    void updateEventByAdminRequest(@MappingTarget Event event, UpdateEventAdminRequest request);
 
-    UpdateEventParam toUpdateParam(UpdateEventUserRequest request);
-
-    @Named("stateFromAdminAction")
-    default EventState stateFromAdminAction(UpdateEventAdminRequest.StateAction action) {
-        if (action == null) {
-            return null;
-        }
-
-        if (action == UpdateEventAdminRequest.StateAction.PUBLISH_EVENT) {
-            return EventState.PUBLISHED;
-        } else {
-            return EventState.REJECTED;
-        }
-    }
-
-    @Named("stateFromUserAction")
-    default EventState stateFromUserAction(UpdateEventUserRequest.StateAction action) {
-        if (action == null) {
-            return null;
-        }
-
-        if (action == UpdateEventUserRequest.StateAction.SEND_TO_REVIEW) {
-            return EventState.PENDING;
-        } else {
-            return EventState.CANCELED;
-        }
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(source = "request.location.latitude", target = "location.latitude")
+    @Mapping(source = "request.location.longitude", target = "location.longitude")
+    void updateEventByUserRequest(@MappingTarget Event event, UpdateEventUserRequest request);
 }

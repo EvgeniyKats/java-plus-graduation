@@ -1,5 +1,6 @@
 package ru.practicum.event.event.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,10 +43,10 @@ public class Event {
     @Column(name = "event_title", nullable = false, length = 120)
     String title;
 
-    @Column(name = "description",nullable = false, length = 7000)
+    @Column(name = "description", nullable = false, length = 7000)
     String description;
 
-    @Column(name = "annotation",nullable = false, length = 2000)
+    @Column(name = "annotation", nullable = false, length = 2000)
     String annotation;
 
     @Column(name = "initiator_id", nullable = false)
@@ -77,6 +78,6 @@ public class Event {
     @Column(name = "request_moderation")
     Boolean requestModeration;
 
-    @OneToOne(mappedBy = "event", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     Location location;
 }

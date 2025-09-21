@@ -7,23 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.interaction.dto.event.EventFullDto;
-import ru.practicum.interaction.dto.event.EventRequestStatusUpdateRequest;
-import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
-import ru.practicum.interaction.dto.event.EventShortDto;
-import ru.practicum.interaction.dto.event.EventState;
-import ru.practicum.interaction.dto.event.NewEventDto;
-import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
-import ru.practicum.interaction.dto.event.UpdateEventParam;
-import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
-import ru.practicum.interaction.dto.request.ParticipationRequestDto;
-import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
-import ru.practicum.interaction.dto.user.UserDto;
-import ru.practicum.interaction.exception.BadRequestException;
-import ru.practicum.interaction.exception.ConflictException;
-import ru.practicum.interaction.exception.NotFoundException;
-import ru.practicum.interaction.feign.request.RequestInternalFeign;
-import ru.practicum.interaction.feign.user.UserInternalFeign;
 import ru.practicum.event.category.model.Category;
 import ru.practicum.event.category.repository.CategoryRepository;
 import ru.practicum.event.event.EventRepository;
@@ -34,11 +17,27 @@ import ru.practicum.event.event.model.QEvent;
 import ru.practicum.event.event.service.param.GetEventAdminParam;
 import ru.practicum.event.event.service.param.GetEventUserParam;
 import ru.practicum.event.event.util.ResponseEventBuilder;
+import ru.practicum.interaction.dto.event.EventFullDto;
+import ru.practicum.interaction.dto.event.EventRequestStatusUpdateRequest;
+import ru.practicum.interaction.dto.event.EventRequestStatusUpdateResult;
+import ru.practicum.interaction.dto.event.EventShortDto;
+import ru.practicum.interaction.dto.event.EventState;
+import ru.practicum.interaction.dto.event.NewEventDto;
+import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
+import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
+import ru.practicum.interaction.dto.request.ParticipationRequestDto;
+import ru.practicum.interaction.dto.request.PatchManyRequestsStatusDto;
+import ru.practicum.interaction.exception.BadRequestException;
+import ru.practicum.interaction.exception.ConflictException;
+import ru.practicum.interaction.exception.NotFoundException;
+import ru.practicum.interaction.feign.request.RequestInternalFeign;
+import ru.practicum.interaction.feign.user.UserInternalFeign;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import static ru.practicum.event.event.util.ValidatorEventTime.isEventTimeBad;
 import static ru.practicum.interaction.Constants.CATEGORY_NOT_FOUND;
 import static ru.practicum.interaction.Constants.EVENT_NOT_FOUND;
 import static ru.practicum.interaction.dto.event.EventState.CANCELED;
@@ -47,7 +46,6 @@ import static ru.practicum.interaction.dto.event.EventState.PUBLISHED;
 import static ru.practicum.interaction.dto.event.EventState.REJECTED;
 import static ru.practicum.interaction.dto.event.UpdateEventAdminRequest.StateAction.PUBLISH_EVENT;
 import static ru.practicum.interaction.dto.event.UpdateEventUserRequest.StateAction.SEND_TO_REVIEW;
-import static ru.practicum.event.event.util.ValidatorEventTime.isEventTimeBad;
 
 @Slf4j
 @Service
@@ -55,11 +53,11 @@ import static ru.practicum.event.event.util.ValidatorEventTime.isEventTimeBad;
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
+    private final LocationRepository locationRepository;
     private final MapperEvent eventMapper;
     private final RequestInternalFeign requestInternalFeign;
     private final UserInternalFeign userInternalFeign;
     private final CategoryRepository categoryRepository;
-    private final LocationRepository locationRepository;
     private final ResponseEventBuilder responseEventBuilder;
 
     @Override
@@ -137,24 +135,19 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto addNewEvent(Long userId, NewEventDto eventDto) {
-        Event event = eventMapper.toEvent(eventDto);
-
         if (isEventTimeBad(eventDto.getEventDate(), 2)) {
             throw new BadRequestException("Дата и время на которые намечено событие не может быть раньше, чем через два часа от текущего момента");
         }
 
         Category category = categoryRepository.findById(eventDto.getCategory()).orElseThrow(
                 () -> new NotFoundException(CATEGORY_NOT_FOUND));
-        event.setCategory(category);
+        Long initiatorId = userInternalFeign.findUserById(userId).getId();
 
-
-        UserDto initiator = userInternalFeign.findUserById(userId);
-        event.setInitiatorId(initiator.getId());
-
+        Event event = eventMapper.toEvent(eventDto, category, initiatorId);
         event.getLocation().setEvent(event);
         locationRepository.save(event.getLocation());
 
-        event = eventRepository.save(event);
+        eventRepository.save(event);
         return responseEventBuilder.buildOneEventResponseDto(event, EventFullDto.class);
     }
 
@@ -191,8 +184,13 @@ public class EventServiceImpl implements EventService {
             event.setEventDate(updateDto.getEventDate());
         }
 
-        UpdateEventParam param = eventMapper.toUpdateParam(updateDto);
-        updateEvent(event, param);
+        if (updateDto.hasCategory()) {
+            Category category = categoryRepository.findById(updateDto.getCategory())
+                    .orElseThrow(() -> new NotFoundException(CATEGORY_NOT_FOUND));
+            event.setCategory(category);
+        }
+
+        eventMapper.updateEventByUserRequest(event, updateDto);
 
         return responseEventBuilder.buildOneEventResponseDto(event, EventFullDto.class);
     }
@@ -252,16 +250,12 @@ public class EventServiceImpl implements EventService {
         }
 
         if (updateDto.hasStateAction()) {
-            EventState state;
-
             if (updateDto.getStateAction() == PUBLISH_EVENT) {
-                state = PUBLISHED;
+                event.setState(PUBLISHED);
                 event.setPublishedOn(LocalDateTime.now());
             } else {
-                state = REJECTED;
+                event.setState(REJECTED);
             }
-
-            event.setState(state);
         }
 
         if (updateDto.hasEventDate()) {
@@ -271,47 +265,15 @@ public class EventServiceImpl implements EventService {
             event.setEventDate(updateDto.getEventDate());
         }
 
-        UpdateEventParam param = eventMapper.toUpdateParam(updateDto);
-        updateEvent(event, param);
-
-        return responseEventBuilder.buildOneEventResponseDto(event, EventFullDto.class);
-    }
-
-    private void updateEvent(Event event, UpdateEventParam param) {
-        if (param.hasCategory()) {
-            Category category = categoryRepository.findById(param.getCategory())
+        if (updateDto.hasCategory()) {
+            Category category = categoryRepository.findById(updateDto.getCategory())
                     .orElseThrow(() -> new NotFoundException(CATEGORY_NOT_FOUND));
             event.setCategory(category);
         }
 
-        if (param.hasAnnotation()) {
-            event.setAnnotation(param.getAnnotation());
-        }
+        eventMapper.updateEventByAdminRequest(event, updateDto);
 
-        if (param.hasDescription()) {
-            event.setDescription(param.getDescription());
-        }
-
-        if (param.hasLocation()) {
-            event.getLocation().setLatitude(param.getLocation().getLatitude());
-            event.getLocation().setLongitude(param.getLocation().getLongitude());
-        }
-
-        if (param.hasPaid()) {
-            event.setPaid(param.getPaid());
-        }
-
-        if (param.hasParticipantLimit()) {
-            event.setParticipantLimit(param.getParticipantLimit());
-        }
-
-        if (param.hasRequestModeration()) {
-            event.setRequestModeration(param.getRequestModeration());
-        }
-
-        if (param.hasTitle()) {
-            event.setTitle(param.getTitle());
-        }
+        return responseEventBuilder.buildOneEventResponseDto(event, EventFullDto.class);
     }
 
     private boolean isPreModerationOff(boolean moderationStatus, int limit) {

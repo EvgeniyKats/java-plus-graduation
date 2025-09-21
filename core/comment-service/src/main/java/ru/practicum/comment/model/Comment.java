@@ -41,6 +41,6 @@ public class Comment {
     String text;
 
     @Column(name = "created_date", nullable = false)
-    LocalDateTime created;
-
+    @Builder.Default
+    LocalDateTime created = LocalDateTime.now();
 }

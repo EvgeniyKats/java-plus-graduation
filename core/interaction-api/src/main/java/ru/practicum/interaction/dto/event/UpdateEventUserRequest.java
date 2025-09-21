@@ -50,4 +50,8 @@ public class UpdateEventUserRequest {
     public boolean hasStateAction() {
         return stateAction != null;
     }
+
+    public boolean hasCategory() {
+        return category != null;
+    }
 }

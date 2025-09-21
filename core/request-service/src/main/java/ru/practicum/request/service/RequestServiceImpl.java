@@ -110,8 +110,8 @@ public class RequestServiceImpl implements RequestService {
 
         List<Request> requestsAll = requestRepository.findAllByEventId(patchDto.eventId());
         List<Request> requestsStatusPending = requestsAll.stream()
-                .filter(r -> r.getStatus() == RequestStatus.PENDING)
-                .filter(r -> patchDto.requestIds().contains(r.getId()))
+                .filter(req -> req.getStatus() == RequestStatus.PENDING)
+                .filter(req -> patchDto.requestIds().contains(req.getId()))
                 .toList();
 
         if (requestsStatusPending.size() != patchDto.requestIds().size()) {
@@ -138,26 +138,17 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("Достигнут лимит заявок на событие");
         }
 
-        int idx = 0;
-        while (idx < requestsStatusPending.size() && limitLeft > 0) {
-            Request request = requestsStatusPending.get(idx);
-            request.setStatus(RequestStatus.CONFIRMED);
-
-            ParticipationRequestDto dto = mapperRequest.toParticipationRequestDto(request);
-            result.getConfirmedRequests().add(dto);
-
-            limitLeft--;
-            idx++;
-        }
-
-        while (idx < requestsStatusPending.size()) {
-            Request request = requestsStatusPending.get(idx);
-            request.setStatus(RequestStatus.CANCELED);
-
-            ParticipationRequestDto dto = mapperRequest.toParticipationRequestDto(request);
-            result.getRejectedRequests().add(dto);
-
-            idx++;
+        for (Request request : requestsStatusPending) {
+            if (limitLeft > 0) {
+                request.setStatus(RequestStatus.CONFIRMED);
+                ParticipationRequestDto dto = mapperRequest.toParticipationRequestDto(request);
+                result.getConfirmedRequests().add(dto);
+                limitLeft--;
+            } else {
+                request.setStatus(RequestStatus.CANCELED);
+                ParticipationRequestDto dto = mapperRequest.toParticipationRequestDto(request);
+                result.getRejectedRequests().add(dto);
+            }
         }
 
         return result;

@@ -49,10 +49,7 @@ public class CommentServiceImpl implements CommentService {
             throw new ConflictException("Событие ещё не опубликовано eventId=" + eventId);
         }
 
-        Comment comment = commentMapper.toComment(commentDto);
-        comment.setAuthorId(commentAuthor.getId());
-        comment.setEventId(event.getId());
-        comment.setCreated(LocalDateTime.now());
+        Comment comment = commentMapper.toComment(commentDto, commentAuthor.getId(), event.getId());
         commentRepository.save(comment);
 
         return commentMapper.toGetCommentDto(comment, commentAuthor);
