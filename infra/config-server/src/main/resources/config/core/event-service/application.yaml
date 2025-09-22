@@ -1,0 +1,19 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5501/event
+    username: event
+    password: event
+  sql:
+    init:
+      mode: always
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: UTC
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
