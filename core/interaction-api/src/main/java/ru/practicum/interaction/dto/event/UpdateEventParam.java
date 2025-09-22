@@ -25,36 +25,4 @@ public class UpdateEventParam {
     Boolean requestModeration;
 
     LocationDto location;
-
-    public boolean hasAnnotation() {
-        return annotation != null;
-    }
-
-    public boolean hasCategory() {
-        return category != null;
-    }
-
-    public boolean hasDescription() {
-        return description != null;
-    }
-
-    public boolean hasLocation() {
-        return location != null;
-    }
-
-    public boolean hasPaid() {
-        return paid != null;
-    }
-
-    public boolean hasParticipantLimit() {
-        return participantLimit != null;
-    }
-
-    public boolean hasRequestModeration() {
-        return requestModeration != null;
-    }
-
-    public boolean hasTitle() {
-        return title != null;
-    }
 }
