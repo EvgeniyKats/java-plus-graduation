@@ -199,6 +199,20 @@ services:
     volumes:
       - user-data:/var/lib/postgresql/data
 
+  collector:
+    build: core/collector
+    image: graduation-collector
+    container_name: collector
+    depends_on:
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_healthy
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=collector
+    entrypoint: sh -c "sleep 30 && java ${JAVA_OPTS} -jar /app.jar"
+
   kafka:
     image: confluentinc/confluent-local:7.4.3
     hostname: kafka
