@@ -1,6 +1,5 @@
 package ru.practicum.event.event.controller;
 
-import client.StatsClient;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +15,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.practicum.interaction.exception.BadRequestException;
+import ru.practicum.event.event.service.EventService;
+import ru.practicum.event.event.service.param.GetEventUserParam;
 import ru.practicum.interaction.dto.event.EventFullDto;
 import ru.practicum.interaction.dto.event.EventShortDto;
 import ru.practicum.interaction.dto.event.EventSortType;
-import ru.practicum.event.event.service.EventService;
-import ru.practicum.event.event.service.param.GetEventUserParam;
-import ru.practicum.stats.dto.EndpointHitDto;
+import ru.practicum.interaction.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static ru.practicum.interaction.Constants.DATE_PATTERN;
 
+// TODO: переработать doHit
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -37,7 +36,6 @@ import static ru.practicum.interaction.Constants.DATE_PATTERN;
 public class PublicEventController {
 
     private final EventService eventService;
-    private final StatsClient statsClient;
 
     @GetMapping
     public ResponseEntity<List<EventShortDto>> getEventsByFilters(@RequestParam(name = "text", required = false) String text,
@@ -92,11 +90,11 @@ public class PublicEventController {
     }
 
     private void doHit(HttpServletRequest request) {
-        EndpointHitDto hitDto = new EndpointHitDto();
-        hitDto.setApp("ewm-main-service");
-        hitDto.setIp(request.getRemoteAddr());
-        hitDto.setUri(request.getRequestURI());
-        hitDto.setCreated(LocalDateTime.now());
-        statsClient.hitStat(hitDto);
+//        EndpointHitDto hitDto = new EndpointHitDto();
+//        hitDto.setApp("ewm-main-service");
+//        hitDto.setIp(request.getRemoteAddr());
+//        hitDto.setUri(request.getRequestURI());
+//        hitDto.setCreated(LocalDateTime.now());
+//        statsClient.hitStat(hitDto);
     }
 }
