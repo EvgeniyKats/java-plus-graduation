@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package stats.service.collector;
+
+import "google/protobuf/empty.proto";
+import "stats/messages/recommendation.proto";
+
+option java_package = "ru.practicum.ewm.stats.proto";
+
+service RecommendationsController {
+  rpc GetRecommendationsForUser (stats.message.UserPredictionsRequestProto)
+      returns (stats.message.RecommendedEventProto);
+
+  rpc GetSimilarEvents (stats.message.SimilarEventsRequestProto)
+      returns (stats.message.RecommendedEventProto);
+
+  rpc GetInteractionsCount (stats.message.InteractionsCountRequestProto)
+      returns (stats.message.RecommendedEventProto);
+}
