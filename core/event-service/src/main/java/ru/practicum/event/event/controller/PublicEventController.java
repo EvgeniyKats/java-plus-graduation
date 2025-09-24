@@ -28,6 +28,7 @@ import java.util.List;
 import static ru.practicum.interaction.Constants.DATE_PATTERN;
 
 // TODO: переработать doHit
+// TODO: проверить версии зависимостей в pom для новых модулей
 @Slf4j
 @Controller
 @RequiredArgsConstructor
