@@ -1,4 +1,4 @@
-package ru.practicum.aggregator.util;
+package ru.practicum.aggregator.config;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

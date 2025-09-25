@@ -18,6 +18,10 @@ public interface RequestInternalApi {
     @GetMapping
     List<ParticipationRequestDto> findAllByEventId(@RequestParam @Positive Long eventId);
 
+    @GetMapping("/participation")
+    ParticipationRequestDto findUserParticipation(@RequestParam @Positive Long eventId,
+                                                  @RequestParam @Positive Long userId);
+
     @GetMapping("/confirmed")
     List<ConfirmedRequestsDto> findConfirmedRequestByEventIds(
             @RequestParam Collection<@Positive Long> eventIds);

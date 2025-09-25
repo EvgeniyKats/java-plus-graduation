@@ -17,6 +17,7 @@ import ru.practicum.ewm.stats.proto.UserActionProto;
 public class CollectorControllerGrpc extends UserActionControllerGrpc.UserActionControllerImplBase {
     private final CollectorService collectorService;
 
+    @Override
     public void collectUserAction(UserActionProto userActionProto, StreamObserver<Empty> responseObserver) {
         String logMsg = String.format("collect userId=%s, eventId=%s, actionType=%s, ts=%d",
                 userActionProto.getUserId(),

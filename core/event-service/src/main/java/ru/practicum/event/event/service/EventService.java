@@ -24,6 +24,8 @@ public interface EventService {
 
     List<EventShortDto> getAllUsersEvents(Long userId, Pageable page);
 
+    List<EventFullDto> getRecommendations(Long userId);
+
     EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest eventDto);
 
     EventFullDto addNewEvent(Long userId, NewEventDto eventDto);
@@ -41,4 +43,6 @@ public interface EventService {
      * @throws ru.practicum.interaction.exception.ConflictException событие не опубликовано
      */
     EventFullDto getEventById(Long eventId, boolean isInternalRequest);
+
+    void addLike(Long userId, Long eventId);
 }

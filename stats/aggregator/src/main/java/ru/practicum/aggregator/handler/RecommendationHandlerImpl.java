@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.aggregator.storage.RecommendationStorage;
 import ru.practicum.aggregator.storage.SimilarityData;
-import ru.practicum.aggregator.util.calculator.CalculatorParam;
-import ru.practicum.aggregator.util.calculator.SimilarityCalculator;
-import ru.practicum.aggregator.util.WeightCostByType;
+import ru.practicum.aggregator.util.CalculatorParam;
+import ru.practicum.aggregator.util.SimilarityCalculator;
+import ru.practicum.aggregator.config.WeightCostByType;
 import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 

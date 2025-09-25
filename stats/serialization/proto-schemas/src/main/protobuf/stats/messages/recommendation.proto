@@ -17,10 +17,10 @@ message RecommendedEventProto {
 message SimilarEventsRequestProto {
   int64 event_id = 1;
   int64 user_id = 2;
-  int64 max_results = 3;
+  int32 max_results = 3;
 }
 
 message UserPredictionsRequestProto {
   int64 user_id = 1;
-  sint32 max_results = 2;
+  int32 max_results = 2;
 }

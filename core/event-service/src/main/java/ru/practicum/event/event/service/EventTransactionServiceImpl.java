@@ -24,8 +24,11 @@ import ru.practicum.interaction.exception.ConflictException;
 import ru.practicum.interaction.exception.NotFoundException;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static ru.practicum.event.event.util.ValidatorEventTime.isEventTimeBad;
 import static ru.practicum.interaction.Constants.CATEGORY_NOT_FOUND;
@@ -111,6 +114,22 @@ public class EventTransactionServiceImpl implements EventTransactionService {
     @Override
     public List<Event> getAllUsersEvents(Long userId, Pageable page) {
         return eventRepository.findByInitiatorId(userId, page);
+    }
+
+    @Override
+    public List<Event> getEventsByIds(Collection<Long> eventIds) {
+        List<Event> eventsFromDb = eventRepository.findAllById(eventIds);
+
+        if (eventsFromDb.size() < eventIds.size()) {
+            Set<Long> notFound = new HashSet<>(eventIds);
+
+            for (Event event : eventsFromDb) {
+                notFound.remove(event.getId());
+            }
+
+            throw new NotFoundException("Не найдены события: " + notFound);
+        }
+        return eventsFromDb;
     }
 
     @Override

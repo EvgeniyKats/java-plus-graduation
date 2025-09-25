@@ -1,4 +1,4 @@
-package ru.practicum.aggregator.util.calculator;
+package ru.practicum.aggregator.util;
 
 import java.util.List;
 
