@@ -21,6 +21,11 @@ public class RequestInternalFeignFallbackHandler implements RequestInternalFeign
     }
 
     @Override
+    public ParticipationRequestDto findUserParticipation(Long eventId, Long userId) {
+        throw requestFallbackException;
+    }
+
+    @Override
     public List<ConfirmedRequestsDto> findConfirmedRequestByEventIds(Collection<Long> eventIds) {
         throw requestFallbackException;
     }

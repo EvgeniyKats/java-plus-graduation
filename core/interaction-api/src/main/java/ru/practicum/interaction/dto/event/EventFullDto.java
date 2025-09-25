@@ -63,7 +63,7 @@ public class EventFullDto implements ResponseEvent {
 
     private EventState state;
 
-    private long views;
+    private double rating;
 
     @Builder.Default
     private List<GetCommentDto> comments = new ArrayList<>();

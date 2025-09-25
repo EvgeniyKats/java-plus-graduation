@@ -8,6 +8,7 @@ import ru.practicum.interaction.dto.event.NewEventDto;
 import ru.practicum.interaction.dto.event.UpdateEventAdminRequest;
 import ru.practicum.interaction.dto.event.UpdateEventUserRequest;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface EventTransactionService {
@@ -16,6 +17,8 @@ public interface EventTransactionService {
     List<Event> getEventsByUser(GetEventUserParam param);
 
     List<Event> getAllUsersEvents(Long userId, Pageable page);
+
+    List<Event> getEventsByIds(Collection<Long> eventIds);
 
     Event getEventById(Long eventId);
 

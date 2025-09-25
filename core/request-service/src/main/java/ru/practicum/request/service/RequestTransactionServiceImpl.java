@@ -39,6 +39,12 @@ public class RequestTransactionServiceImpl implements RequestTransactionService 
     }
 
     @Override
+    public Request findUserParticipationInEvent(Long userId, Long eventId) {
+        return requestRepository.findByEventIdAndRequesterId(eventId, userId).orElseThrow(() ->
+                new NotFoundException("Запрос не найден"));
+    }
+
+    @Override
     public List<Request> findAllByEventId(Long eventId) {
         return requestRepository.findAllByEventId(eventId);
     }

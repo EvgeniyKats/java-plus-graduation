@@ -12,6 +12,8 @@ import java.util.List;
 public interface RequestTransactionService {
     List<Request> getParticipationRequests(Long userId);
 
+    Request findUserParticipationInEvent(Long userId, Long eventId);
+
     List<Request> findAllByEventId(Long eventId);
 
     List<ConfirmedRequests> findConfirmedRequestByEventIds(Collection<Long> eventIds);

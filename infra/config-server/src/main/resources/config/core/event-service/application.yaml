@@ -17,3 +17,16 @@ spring:
     openfeign:
       okhttp:
         enabled: true
+
+grpc:
+  client:
+    analyzer:
+      address: 'discovery:///analyzer' # адрес gRPC-сервиса
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+    collector:
+      address: 'discovery:///collector' # адрес gRPC-сервиса
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
