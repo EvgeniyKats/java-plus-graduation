@@ -9,6 +9,7 @@ import ru.practicum.request.model.Request;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface RequestRepository extends JpaRepository<Request, Long> {
 
@@ -17,6 +18,8 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     boolean existsByEventIdAndRequesterId(Long eventId, Long requesterId);
 
     List<Request> findAllByEventId(Long eventId);
+
+    Optional<Request> findByEventIdAndRequesterId(Long eventId, Long requesterId);
 
     int countByEventIdAndStatus(Long eventId, RequestStatus requestStatus);
 

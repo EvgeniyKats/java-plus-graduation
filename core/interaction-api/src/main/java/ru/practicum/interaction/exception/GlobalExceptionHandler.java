@@ -34,6 +34,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @Logging(Level.WARN)
+    public ApiError handleAddLikeException(final AddLikeException e) {
+        return e.getError();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @Logging(Level.WARN)
     public ApiError handleConstraintViolationException(final ConstraintViolationException e) {
         return ApiError.builder()
                 .reason("Нарушение валидации (constraint)")
