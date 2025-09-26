@@ -85,9 +85,7 @@ public class RequestTransactionServiceImpl implements RequestTransactionService 
                 LocalDateTime.now()
         );
 
-        requestRepository.save(request);
-
-        return request;
+        return requestRepository.save(request);
     }
 
     @Override
@@ -98,7 +96,7 @@ public class RequestTransactionServiceImpl implements RequestTransactionService 
 
         request.setStatus(RequestStatus.CANCELED);
 
-        return request;
+        return requestRepository.save(request);
     }
 
     @Override
@@ -149,6 +147,7 @@ public class RequestTransactionServiceImpl implements RequestTransactionService 
             }
         }
 
+        requestRepository.saveAll(requestsStatusPending);
         return result;
     }
 

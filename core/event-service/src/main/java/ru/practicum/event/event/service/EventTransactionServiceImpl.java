@@ -154,8 +154,7 @@ public class EventTransactionServiceImpl implements EventTransactionService {
         eventFromDb.getLocation().setEvent(eventFromDb);
         locationRepository.save(eventFromDb.getLocation());
 
-        eventRepository.save(eventFromDb);
-        return eventFromDb;
+        return eventRepository.save(eventFromDb);
     }
 
     @Override
@@ -191,7 +190,7 @@ public class EventTransactionServiceImpl implements EventTransactionService {
         }
 
         eventMapper.updateEventByUserRequest(event, updateDto);
-        return event;
+        return eventRepository.save(event);
     }
 
     @Override
@@ -228,6 +227,6 @@ public class EventTransactionServiceImpl implements EventTransactionService {
 
         eventMapper.updateEventByAdminRequest(event, updateDto);
 
-        return event;
+        return eventRepository.save(event);
     }
 }

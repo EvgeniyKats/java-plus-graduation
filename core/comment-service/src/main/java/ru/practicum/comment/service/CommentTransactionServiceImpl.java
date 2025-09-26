@@ -59,8 +59,7 @@ public class CommentTransactionServiceImpl implements CommentTransactionService 
         }
 
         Comment comment = commentMapper.toComment(commentDto, authorId, event.getId());
-        commentRepository.save(comment);
-        return comment;
+        return commentRepository.save(comment);
     }
 
     @Override
@@ -81,7 +80,7 @@ public class CommentTransactionServiceImpl implements CommentTransactionService 
 
         comment.setText(commentDto.getText());
 
-        return comment;
+        return commentRepository.save(comment);
     }
 
     @Override
