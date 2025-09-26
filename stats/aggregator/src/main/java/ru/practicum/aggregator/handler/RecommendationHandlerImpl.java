@@ -2,11 +2,11 @@ package ru.practicum.aggregator.handler;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.practicum.aggregator.config.WeightCostByType;
 import ru.practicum.aggregator.storage.RecommendationStorage;
 import ru.practicum.aggregator.storage.SimilarityData;
 import ru.practicum.aggregator.util.CalculatorParam;
 import ru.practicum.aggregator.util.SimilarityCalculator;
-import ru.practicum.aggregator.config.WeightCostByType;
 import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 
@@ -26,8 +26,13 @@ public class RecommendationHandlerImpl implements RecommendationHandler {
         long eventId = action.getEventId();
         double newWeight = weightCostByType.getActionWeight(action.getActionType());
 
-        List<Long> updatedEventIds = recommendationStorage.put(eventId, userId, newWeight);
-        List<SimilarityData> similarities = recommendationStorage.get(eventId, updatedEventIds);
+        boolean updated = recommendationStorage.updateWeight(eventId, userId, newWeight);
+
+        if (!updated) {
+            return List.of();
+        }
+
+        List<SimilarityData> similarities = recommendationStorage.getSimilarEvents(eventId, userId);
 
         Instant ts = action.getTimestamp();
         CalculatorParam param = new CalculatorParam(similarities, ts);

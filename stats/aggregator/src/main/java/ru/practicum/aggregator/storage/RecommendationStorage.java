@@ -3,15 +3,19 @@ package ru.practicum.aggregator.storage;
 import java.util.List;
 
 public interface RecommendationStorage {
-    /**
-     * @return список идентификаторов связанных событий
-     */
-    List<Long> put(long eventId, long userId, double newWeight);
 
     /**
-     * @param eventId       основное событие (событие А)
-     * @param otherEventIds список событий, которые связаны с событием А. Не предполагается передача несвязанных событий.
+     * Обновляет вес мероприятия и связанных с ним пар
+     *
+     * @param eventId идентификатор события
+     * @param userId идентификатор пользователя
+     * @param newWeight вес оценки пользователя
+     */
+    boolean updateWeight(long eventId, long userId, double newWeight);
+
+    /**
+     * @param eventId основное событие (событие А)
      * @return данные о сходствах для дальнейших расчётов
      */
-    List<SimilarityData> get(long eventId, List<Long> otherEventIds);
+    List<SimilarityData> getSimilarEvents(long eventId, long userId);
 }

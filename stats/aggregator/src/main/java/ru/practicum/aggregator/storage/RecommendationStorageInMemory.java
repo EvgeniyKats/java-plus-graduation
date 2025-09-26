@@ -25,12 +25,12 @@ public class RecommendationStorageInMemory implements RecommendationStorage {
         this.userWeights = new HashMap<>();
     }
 
-    public List<Long> put(long eventId, long userId, double newWeight) {
+    public boolean updateWeight(long eventId, long userId, double newWeight) {
         EventUserWeight key = new EventUserWeight(eventId, userId);
         double oldWeight = userWeights.getOrDefault(key, 0.0);
 
         if (newWeight <= oldWeight) {
-            return List.of(); // обновление не требуется
+            return false; // обновление не требуется
         }
 
         // 1. обновляем вес пользователя
@@ -38,17 +38,16 @@ public class RecommendationStorageInMemory implements RecommendationStorage {
         // 2. обновляем общий вес мероприятия (знаменатель)
         sumWeights.put(eventId, sumWeights.getOrDefault(eventId, 0.0) - oldWeight + newWeight);
         // 3. обновляем вес пар мероприятий (числитель)
-        List<Long> ans = new ArrayList<>();
+        boolean updated = false;
 
         for (Long otherEventId : sumWeights.keySet()) {
             if (otherEventId == eventId) {
                 continue; // не сравниваем пары А_А (текущее с текущим)
             }
 
-            // если пользователь как-то оценивал мероприятие Б, его необходимо добавить в ответ
             EventUserWeight otherKey = new EventUserWeight(otherEventId, userId);
             if (userWeights.containsKey(otherKey)) {
-                ans.add(otherEventId);
+                updated = true;
 
                 double otherWeight = userWeights.get(otherKey);
                 double minOld = Math.min(otherWeight, oldWeight);
@@ -61,18 +60,18 @@ public class RecommendationStorageInMemory implements RecommendationStorage {
             }
         }
 
-        return ans;
+        return updated;
     }
 
-    public List<SimilarityData> get(long eventId, List<Long> otherEventIds) {
-        if (otherEventIds.isEmpty()) {
-            return List.of();
-        }
-
+    public List<SimilarityData> getSimilarEvents(long eventId, long userId) {
         List<SimilarityData> events = new ArrayList<>();
         double thisSum = sumWeights.get(eventId);
 
-        for (Long otherEventId : otherEventIds) {
+        for (Long otherEventId : sumWeights.keySet()) {
+            if (otherEventId == eventId || !userWeights.containsKey(new EventUserWeight(otherEventId, userId))) {
+                continue;
+            }
+
             double otherSum = sumWeights.get(otherEventId);
             double minWeight = minWeights.get(new TwoEventWeightMin(eventId, otherEventId));
             events.add(new SimilarityData(eventId, otherEventId, thisSum, otherSum, minWeight));
