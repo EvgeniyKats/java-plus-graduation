@@ -28,6 +28,7 @@ public class AnalyzerControllerGrpc extends RecommendationsControllerGrpc.Recomm
         try {
             log.info("start getRecommendationsForUser {}", eventForLog);
             analyzerService.getRecommendationsForUser(request).forEach(responseObserver::onNext);
+            log.info("end getRecommendationsForUser {}", eventForLog);
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.warn("exception getRecommendationsForUser {}", eventForLog, e);
@@ -37,8 +38,6 @@ public class AnalyzerControllerGrpc extends RecommendationsControllerGrpc.Recomm
                             .withCause(e)
             ));
         }
-
-        log.info("end getRecommendationsForUser {}", eventForLog);
     }
 
     @Override
@@ -51,6 +50,7 @@ public class AnalyzerControllerGrpc extends RecommendationsControllerGrpc.Recomm
         try {
             log.info("start getSimilarEvents {}", eventForLog);
             analyzerService.getSimilarEvents(request).forEach(responseObserver::onNext);
+            log.info("end getSimilarEvents {}", eventForLog);
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.warn("exception getSimilarEvents {}", eventForLog, e);
@@ -60,8 +60,6 @@ public class AnalyzerControllerGrpc extends RecommendationsControllerGrpc.Recomm
                             .withCause(e)
             ));
         }
-
-        log.info("end getSimilarEvents {}", eventForLog);
     }
 
     @Override
@@ -71,6 +69,7 @@ public class AnalyzerControllerGrpc extends RecommendationsControllerGrpc.Recomm
         try {
             log.info("start getInteractionsCount {}", eventForLog);
             analyzerService.getInteractionsCount(request).forEach(responseObserver::onNext);
+            log.info("end getInteractionsCount {}", eventForLog);
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.warn("exception getInteractionsCount {}", eventForLog, e);
@@ -80,7 +79,5 @@ public class AnalyzerControllerGrpc extends RecommendationsControllerGrpc.Recomm
                             .withCause(e)
             ));
         }
-
-        log.info("end getInteractionsCount {}", eventForLog);
     }
 }
