@@ -14,5 +14,5 @@ public interface InteractionRepository extends JpaRepository<Interaction, Long> 
 
     List<Interaction> findAllByUserId(long userId);
 
-    List<Interaction> findAllByEventIdIn(List<Long> eventIds);
+    List<Interaction> findAllByEventIdIn(Set<Long> eventIds);
 }
