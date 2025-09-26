@@ -169,7 +169,7 @@ public class AnalyzerServiceImpl implements AnalyzerService {
         return interactionRepository.findAllByEventIdIn(eventsIds).stream()
                 .collect(Collectors.groupingBy(
                         Interaction::getEventId,
-                        Collectors.averagingDouble(Interaction::getRating)
+                        Collectors.summingDouble(Interaction::getRating)
                 ));
     }
 }
