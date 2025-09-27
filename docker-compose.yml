@@ -41,40 +41,6 @@ services:
       - EUREKA_INSTANCE_HOSTNAME=gateway-server
     entrypoint: sh -c "sleep 30 && java ${JAVA_OPTS} -jar /app.jar"
 
-  stats-server:
-    build: stats/stats-server
-    image: graduation-stats
-    container_name: stats-server
-    ports:
-      - "9090:9090"
-    depends_on:
-      stats-db:
-        condition: service_started
-      config-server:
-        condition: service_started
-      discovery-server:
-        condition: service_healthy
-    environment:
-      - SERVER_PORT=9090
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-      - EUREKA_INSTANCE_HOSTNAME=stats-server
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats
-      - SPRING_DATASOURCE_USERNAME=stats
-      - SPRING_DATASOURCE_PASSWORD=stats
-    entrypoint: sh -c "sleep 30 && java ${JAVA_OPTS} -jar /app.jar"
-
-  stats-db:
-    image: postgres:${POSTGRES_VERSION}
-    container_name: stats-db
-    ports:
-      - "6432:5432"
-    environment:
-      - POSTGRES_DB=stats
-      - POSTGRES_USER=stats
-      - POSTGRES_PASSWORD=stats
-    volumes:
-      - stats-data:/var/lib/postgresql/data
-
   event-service:
     build: core/event-service
     image: graduation-event-service
@@ -199,9 +165,97 @@ services:
     volumes:
       - user-data:/var/lib/postgresql/data
 
+  collector:
+    build: stats/collector
+    image: graduation-collector
+    container_name: collector
+    depends_on:
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_healthy
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=collector
+    entrypoint: sh -c "sleep 30 && java ${JAVA_OPTS} -jar /app.jar"
+
+  aggregator:
+    build: stats/aggregator
+    image: graduation-aggregator
+    container_name: aggregator
+    depends_on:
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_healthy
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=aggregator
+    entrypoint: sh -c "sleep 30 && java ${JAVA_OPTS} -jar /app.jar"
+
+  analyzer:
+    build: stats/analyzer
+    image: graduation-analyzer
+    container_name: analyzer
+    depends_on:
+      analyzer-db:
+        condition: service_started
+      config-server:
+        condition: service_started
+      discovery-server:
+        condition: service_healthy
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=analyzer
+    entrypoint: sh -c "sleep 30 && java ${JAVA_OPTS} -jar /app.jar"
+
+  analyzer-db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: analyzer-db
+    ports:
+      - "5505:5432"
+    environment:
+      - POSTGRES_DB=analyzer
+      - POSTGRES_USER=analyzer
+      - POSTGRES_PASSWORD=analyzer
+    volumes:
+      - analyzer-data:/var/lib/postgresql/data
+
+  kafka:
+    image: confluentinc/confluent-local:7.4.3
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092" # for client connections
+      - "9101:9101" # JMX
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      CLUSTER_ID: 'K0EA9p0yEe6MkAAAAkKsEg'
+
+  kafka-init-topics:
+    image: confluentinc/confluent-local:7.4.3
+    container_name: kafka-init-topics
+    depends_on:
+      - kafka
+    command: "bash -c \
+                'kafka-topics --create --topic stats.user-actions.v1 \
+                             --partitions 1 --replication-factor 1 --if-not-exists \
+                             --bootstrap-server kafka:29092 && \
+                kafka-topics --create --topic stats.events-similarity.v1 \
+                             --partitions 1 --replication-factor 1 --if-not-exists \
+                             --bootstrap-server kafka:29092'"
+    init: true
+
 volumes:
-  stats-data:
   event-data:
   comment-data:
   request-data:
   user-data:
+  analyzer-data:

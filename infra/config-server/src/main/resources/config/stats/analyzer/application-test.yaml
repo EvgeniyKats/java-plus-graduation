@@ -1,0 +1,29 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:analyzer-test
+    username: analyzer-test
+    password: analyzer-test
+  h2:
+    console.enabled: true
+  jpa:
+    show-sql: TRUE
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+
+hibernate:
+  show_sql: TRUE
+
+analyzer:
+  kafka:
+    bootstrap-servers: localhost:9092
+
+logging:
+  ru:
+    practicum: TRACE

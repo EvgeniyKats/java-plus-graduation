@@ -11,6 +11,8 @@ import java.util.List;
 public interface RequestService {
     List<ParticipationRequestDto> getParticipationRequests(Long userId);
 
+    ParticipationRequestDto findUserParticipationInEvent(Long userId, Long eventId);
+
     ParticipationRequestDto createParticipationRequest(Long userId, Long eventId);
 
     ParticipationRequestDto cancelParticipationRequest(Long userId, Long requestId);

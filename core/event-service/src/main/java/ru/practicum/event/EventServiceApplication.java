@@ -8,8 +8,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         "ru.practicum.event",
         "ru.practicum.logging",
         "ru.practicum.interaction.exception",
-        "ru.practicum.interaction.feign"})
-@EnableFeignClients(basePackages = {"client", "ru.practicum.interaction.feign"})
+        "ru.practicum.interaction.feign",
+        "ru.practicum.client"})
+@EnableFeignClients(basePackages = {"ru.practicum.interaction.feign"})
 public class EventServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(EventServiceApplication.class, args);

@@ -20,4 +20,7 @@ public interface Constants {
             0,
             10,
             Sort.by("created").descending());
+
+    String EWM_USER_ID_HEADER = "X-EWM-USER-ID";
+    Integer MAX_RECOMMENDATION_COUNT = 10;
 }

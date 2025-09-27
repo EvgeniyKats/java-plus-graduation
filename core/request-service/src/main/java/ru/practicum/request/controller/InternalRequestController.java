@@ -29,6 +29,11 @@ public class InternalRequestController implements RequestInternalApi {
     }
 
     @Override
+    public ParticipationRequestDto findUserParticipation(Long eventId, Long userId) {
+        return requestService.findUserParticipationInEvent(userId, eventId);
+    }
+
+    @Override
     public List<ConfirmedRequestsDto> findConfirmedRequestByEventIds(Collection<Long> eventIds) {
         return requestService.findConfirmedRequestByEventIds(eventIds);
     }
